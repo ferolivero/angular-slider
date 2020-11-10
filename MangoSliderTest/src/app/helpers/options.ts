@@ -15,7 +15,7 @@ export enum LabelType {
 /** Function to translate label value into text */
 export type TranslateFunction = (value: number, label: LabelType) => string;
 /** Function to combind */
-export type CombineLabelsFunction = (minLabel: string, maxLabel: string) => string;
+// export type CombineLabelsFunction = (minLabel: string, maxLabel: string) => string;
 /** Function to provide legend  */
 export type GetLegendFunction = (value: number) => string;
 
@@ -84,7 +84,7 @@ export class Options {
       and should return how these two values should be combined.
       If not provided, the default function will join the two values with
       ' - ' as separator. */
-  combineLabels?: CombineLabelsFunction = null;
+  // combineLabels?: CombineLabelsFunction = null;
 
   /** Use to display legend under ticks (thus, it needs to be used along with
      showTicks or showTicksValues). The function will be called with each tick
@@ -284,10 +284,10 @@ export class Options {
   ariaLabelledByHigh?: string = null;
 
   /** Use to increase rendering performance. If the value is not provided, the slider calculates the with/height of the handle */
-  handleDimension?: number = null;
+  // handleDimension?: number = null;
 
   /** Use to increase rendering performance. If the value is not provided, the slider calculates the with/height of the bar */
-  barDimension?: number = null;
+  // barDimension?: number = null;
 
   /** Enable/disable CSS animations */
   animate?: boolean = true;

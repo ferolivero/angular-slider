@@ -159,10 +159,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   // Which handle is currently tracked for move events
   private currentTrackingPointer: PointerType = null;
-  // Internal variable to keep track of the focus element
-  private currentFocusPointer: PointerType = null;
-  // Current touch id of touch event being handled
-  // private touchId: number = null;
   // Values recorded when first dragging the bar
   private dragging: Dragging = new Dragging();
 
@@ -200,8 +196,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   maxHandleLabelElement: CustomRangeLabelDirective;
 
   // Combined label
-  @ViewChild('combinedLabel', { read: CustomRangeLabelDirective })
-  combinedLabelElement: CustomRangeLabelDirective;
+  // @ViewChild('combinedLabel', { read: CustomRangeLabelDirective })
+  // combinedLabelElement: CustomRangeLabelDirective;
 
   // Optional custom template for displaying tooltips
   @ContentChild('tooltipTemplate')
@@ -217,7 +213,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   public minPointerStyle: any = {};
   public maxPointerStyle: any = {};
   public fullBarTransparentClass: boolean = false;
-  public selectionBarDraggableClass: boolean = false;
+  // public selectionBarDraggableClass: boolean = false;
 
   // Event listeners
   private eventListenerHelper: EventListenerHelper = null;
@@ -264,18 +260,12 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       this.viewHighValue = null;
     }
 
-    // this.updateVerticalState(); // need to run this again to cover changes to slider elements
     this.manageElementsStyle();
-    // this.updateDisabledState();
     this.calculateViewDimensions();
-    // this.addAccessibility();
     this.updateCeilLabel();
     this.updateFloorLabel();
     this.initHandles();
     this.manageEventsBindings();
-
-    // this.subscribeResizeObserver();
-
     this.initHasRun = true;
 
     // Run change detection manually to resolve some issues when init procedure changes values used in the view
@@ -493,7 +483,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       this.updateHighHandle(this.valueToPosition(this.viewHighValue));
     }
     this.updateSelectionBar();
-    this.updateCombinedLabel();
+    // this.updateCombinedLabel();
 
     // At the end, we need to communicate the model change to the outputs as well
     // Normalisation changes are also always forced out to ensure that subscribers always end up in correct state
@@ -682,12 +672,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       this.applyFloorCeilOptions();
     }
 
-    if (ValoresHelper.isNullOrUndefined(this.viewOptions.combineLabels)) {
-      this.viewOptions.combineLabels = (minValue: string, maxValue: string): string => {
-        return minValue + ' - ' + maxValue;
-      };
-    }
-
     if (this.viewOptions.logScale && this.viewOptions.floor === 0) {
       throw Error("Can't use floor=0 with logarithmic scale");
     }
@@ -735,38 +719,13 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   // Resets slider
   private resetSlider(rebindEvents: boolean = true): void {
     this.manageElementsStyle();
-    // this.addAccessibility();
     this.updateCeilLabel();
     this.updateFloorLabel();
     if (rebindEvents) {
       this.unbindEvents();
       this.manageEventsBindings();
     }
-    // this.updateDisabledState();
     this.calculateViewDimensions();
-    this.refocusPointerIfNeeded();
-  }
-
-  // Sets focus on the specified pointer
-  private focusPointer(pointerType: PointerType): void {
-    // If not supplied, use min pointer as default
-    if (pointerType !== PointerType.Min && pointerType !== PointerType.Max) {
-      pointerType = PointerType.Min;
-    }
-
-    if (pointerType === PointerType.Min) {
-      this.minHandleElement.focus();
-    } else if (this.range && pointerType === PointerType.Max) {
-      this.maxHandleElement.focus();
-    }
-  }
-
-  private refocusPointerIfNeeded(): void {
-    if (!ValoresHelper.isNullOrUndefined(this.currentFocusPointer)) {
-      this.onPointerFocus(this.currentFocusPointer);
-      const element: CustomRangeHandleDirective = this.getPointerElement(this.currentFocusPointer);
-      element.focus();
-    }
   }
 
   // Update each elements style based on options
@@ -774,7 +733,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.updateScale();
 
     this.fullBarTransparentClass = this.range && this.viewOptions.showOuterSelectionBars;
-    this.selectionBarDraggableClass = false;
 
     // Changing animate class may interfere with slider reset/initialisation, so we should set it separately,
     // after all is properly set up
@@ -799,8 +757,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   private getAllSliderElements(): CustomRangeElementDirective[] {
     return [
-      // this.leftOuterSelectionBarElement,
-      // this.rightOuterSelectionBarElement,
       this.fullBarElement,
       this.selectionBarElement,
       this.minHandleElement,
@@ -808,9 +764,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       this.floorLabelElement,
       this.ceilLabelElement,
       this.minHandleLabelElement,
-      this.maxHandleLabelElement,
-      this.combinedLabelElement
-      // this.ticksElement
+      this.maxHandleLabelElement
     ];
   }
 
@@ -823,35 +777,21 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
    the order here is important since the selection bar should be
    updated after the high handle but before the combined label
    */
-    if (this.range) {
-      this.updateHighHandle(this.valueToPosition(this.viewHighValue));
-    }
+    this.updateHighHandle(this.valueToPosition(this.viewHighValue));
 
     this.updateSelectionBar();
 
-    if (this.range) {
-      this.updateCombinedLabel();
-    }
+    // this.updateCombinedLabel();
   }
 
   // Calculate dimensions that are dependent on view port size
   // Run once during initialization and every time view port changes size.
   private calculateViewDimensions(): void {
-    if (!ValoresHelper.isNullOrUndefined(this.viewOptions.handleDimension)) {
-      this.minHandleElement.setDimension(this.viewOptions.handleDimension);
-    } else {
-      this.minHandleElement.calculateDimension();
-    }
-
+    this.minHandleElement.calculateDimension();
     const handleWidth: number = this.minHandleElement.dimension;
 
     this.handleHalfDimension = handleWidth / 2;
-
-    if (!ValoresHelper.isNullOrUndefined(this.viewOptions.barDimension)) {
-      this.fullBarElement.setDimension(this.viewOptions.barDimension);
-    } else {
-      this.fullBarElement.calculateDimension();
-    }
+    this.fullBarElement.calculateDimension();
 
     this.maxHandlePosition = this.fullBarElement.dimension - handleWidth;
 
@@ -906,9 +846,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     }
 
     this.updateSelectionBar();
-    if (this.range) {
-      this.updateCombinedLabel();
-    }
+    // this.updateCombinedLabel();
   }
 
   // Helper function to work out the position for handle labels depending on RTL or not
@@ -1037,24 +975,24 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   }
 
   // Update combined label position and value
-  private updateCombinedLabel(): void {
-    let isLabelOverlap: boolean = null;
-    if (this.viewOptions.rightToLeft) {
-      isLabelOverlap =
-        this.minHandleLabelElement.position - this.minHandleLabelElement.dimension - 10 <=
-        this.maxHandleLabelElement.position;
-    } else {
-      isLabelOverlap =
-        this.minHandleLabelElement.position + this.minHandleLabelElement.dimension + 10 >=
-        this.maxHandleLabelElement.position;
-    }
+  // private updateCombinedLabel(): void {
+  //   let isLabelOverlap: boolean = null;
+  //   if (this.viewOptions.rightToLeft) {
+  //     isLabelOverlap =
+  //       this.minHandleLabelElement.position - this.minHandleLabelElement.dimension - 10 <=
+  //       this.maxHandleLabelElement.position;
+  //   } else {
+  //     isLabelOverlap =
+  //       this.minHandleLabelElement.position + this.minHandleLabelElement.dimension + 10 >=
+  //       this.maxHandleLabelElement.position;
+  //   }
 
-    this.updateHighHandle(this.valueToPosition(this.viewHighValue));
-    this.updateLowHandle(this.valueToPosition(this.viewLowValue));
-    if (this.viewOptions.autoHideLimitLabels) {
-      this.updateFloorAndCeilLabelsVisibility();
-    }
-  }
+  //   this.updateHighHandle(this.valueToPosition(this.viewHighValue));
+  //   this.updateLowHandle(this.valueToPosition(this.viewLowValue));
+  //   if (this.viewOptions.autoHideLimitLabels) {
+  //     this.updateFloorAndCeilLabelsVisibility();
+  //   }
+  // }
 
   // Return the translated value if a translate function is provided else the original value
   private getDisplayValue(value: number, which: LabelType): string {
@@ -1306,17 +1244,11 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     pointerElement.active = true;
 
     this.currentTrackingPointer = pointerType;
-    this.currentFocusPointer = pointerType;
-    // this.firstKeyDown = true;
   }
 
   private onPointerBlur(pointer: CustomRangeHandleDirective): void {
     pointer.off('blur');
     pointer.active = false;
-    // if (ValoresHelper.isNullOrUndefined(this.touchId)) {
-    //   this.currentTrackingPointer = null;
-    //   this.currentFocusPointer = null;
-    // }
   }
 
   // onDragStart event handler, handles dragging of the middle bar
