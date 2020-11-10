@@ -22,44 +22,22 @@ import { Subject, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, tap, throttleTime } from 'rxjs/operators';
 import { CustomRangeElementDirective } from '../directives/custom-range-element.directive';
 import { ValoresHelper } from '../helpers/valores-helper';
+import {
+  Dragging,
+  EventListener,
+  LabelType,
+  ModelValues,
+  Options,
+  PointerType,
+  PositionToValueFunction,
+  SliderChange,
+  ValueToPositionFunction
+} from '../models';
+import { CustomStepDefinition } from '../models/custom-step-definition';
 import { CustomRangeHandleDirective } from './../directives/custom-range-handle.directive';
 import { CustomRangeLabelDirective } from './../directives/custom-range-label.directive';
-import { ChangeContext } from './../helpers/change-context';
-import { EventListener } from './../helpers/event-listener';
 import { EventListenerHelper } from './../helpers/event-listener-helper';
 import { MathHelper } from './../helpers/math-helper';
-import {
-  CustomStepDefinition,
-  LabelType,
-  Options,
-  PositionToValueFunction,
-  ValueToPositionFunction
-} from './../helpers/options';
-import { PointerType } from './../helpers/pointer-type';
-
-class Dragging {
-  active: boolean = false;
-  value: number = 0;
-  difference: number = 0;
-  position: number = 0;
-  lowLimit: number = 0;
-  highLimit: number = 0;
-}
-
-class ModelValues {
-  value: number;
-  highValue: number;
-
-  public static compare(x?: ModelValues, y?: ModelValues): boolean {
-    if (ValoresHelper.isNullOrUndefined(x) && ValoresHelper.isNullOrUndefined(y)) {
-      return false;
-    }
-    if (ValoresHelper.isNullOrUndefined(x) !== ValoresHelper.isNullOrUndefined(y)) {
-      return false;
-    }
-    return x.value === y.value && x.highValue === y.highValue;
-  }
-}
 
 class ModelChange extends ModelValues {
   // Flag used to by-pass distinctUntilChanged() filter on input values
@@ -113,15 +91,15 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   // Event emitted when user starts interaction with the slider
   @Output()
-  public userChangeStart: EventEmitter<ChangeContext> = new EventEmitter();
+  public userChangeStart: EventEmitter<SliderChange> = new EventEmitter();
 
   // Event emitted on each change coming from user interaction
   @Output()
-  public userChange: EventEmitter<ChangeContext> = new EventEmitter();
+  public userChange: EventEmitter<SliderChange> = new EventEmitter();
 
   // Event emitted when user finishes interaction with the slider
   @Output()
-  public userChangeEnd: EventEmitter<ChangeContext> = new EventEmitter();
+  public userChangeEnd: EventEmitter<SliderChange> = new EventEmitter();
 
   @Input() min: number;
   @Input() max: number;
@@ -189,10 +167,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   // Label above the high value
   @ViewChild('maxHandleLabel', { read: CustomRangeLabelDirective })
   maxHandleLabelElement: CustomRangeLabelDirective;
-
-  // Combined label
-  // @ViewChild('combinedLabel', { read: CustomRangeLabelDirective })
-  // combinedLabelElement: CustomRangeLabelDirective;
 
   // Optional custom template for displaying tooltips
   @ContentChild('tooltipTemplate')
@@ -494,7 +468,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     if (modelChange.userEventInitiated) {
       // If this change was initiated by a user event, we can emit outputs in the same tick
       emitOutputs();
-      this.userChange.emit(this.getChangeContext());
+      this.userChange.emit(this.getSliderChange());
     } else {
       // But, if the change was initated by something else like a change in input bindings,
       // we need to wait until next tick to emit the outputs to keep Angular change detection happy
@@ -549,15 +523,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
       // Make sure that range slider invariant (value <= highValue) is always satisfied
       if (input.value > input.highValue) {
-        // We know that both values are now clamped correctly, they may just be in the wrong order
-        // So the easy solution is to swap them... except swapping is sometimes disabled in options, so we make the two values the same
-        if (this.viewOptions.noSwitching) {
-          normalisedInput.value = normalisedInput.highValue;
-        } else {
-          const tempValue: number = input.value;
-          normalisedInput.value = input.highValue;
-          normalisedInput.highValue = tempValue;
-        }
+        normalisedInput.value = normalisedInput.highValue;
       }
     }
 
@@ -802,7 +768,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     }
 
     this.updateSelectionBar();
-    // this.updateCombinedLabel();
   }
 
   // Helper function to work out the position for handle labels depending on RTL or not
@@ -1071,7 +1036,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       );
     }
 
-    this.userChangeStart.emit(this.getChangeContext());
+    this.userChangeStart.emit(this.getSliderChange());
 
     // Click events, either with mouse or touch gesture are weird. Sometimes they result in full
     // start, move, end sequence, and sometimes, they don't - they only invoke mousedown
@@ -1119,31 +1084,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.unsubscribeOnMove();
     this.unsubscribeOnEnd();
 
-    this.userChangeEnd.emit(this.getChangeContext());
+    this.userChangeEnd.emit(this.getSliderChange());
   }
-
-  // // onDragStart event handler, handles dragging of the middle bar
-  // private onDragStart(
-  //   pointerType: PointerType,
-  //   event: MouseEvent,
-  //   bindMove: boolean,
-  //   bindEnd: boolean
-  // ): void {
-  //   const position: number = this.getEventPosition(event);
-
-  //   this.dragging = new Dragging();
-  //   this.dragging.active = true;
-  //   this.dragging.value = this.positionToValue(position);
-  //   this.dragging.difference = this.viewHighValue - this.viewLowValue;
-  //   this.dragging.lowLimit = this.viewOptions.rightToLeft
-  //     ? this.minHandleElement.position - position
-  //     : position - this.minHandleElement.position;
-  //   this.dragging.highLimit = this.viewOptions.rightToLeft
-  //     ? position - this.maxHandleElement.position
-  //     : this.maxHandleElement.position - position;
-
-  //   this.onStart(pointerType, event, bindMove, bindEnd);
-  // }
 
   /** Get min value depending on whether the newPos is outOfBounds above or below the bar and rightToLeft */
   private getMinValue(newPos: number, outOfBounds: boolean, isAbove: boolean): number {
@@ -1271,41 +1213,27 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   // Set the new value and position to the current tracking handle
   private positionTrackingHandle(newValue: number): void {
     newValue = this.applyMinMaxLimit(newValue);
-    if (this.viewOptions.pushRange) {
-      newValue = this.applyPushRange(newValue);
-    } else {
-      if (this.viewOptions.noSwitching) {
-        if (this.currentTrackingPointer === PointerType.Min && newValue > this.viewHighValue) {
-          newValue = this.applyMinMaxRange(this.viewHighValue);
-        } else if (this.currentTrackingPointer === PointerType.Max && newValue < this.viewLowValue) {
-          newValue = this.applyMinMaxRange(this.viewLowValue);
-        }
-      }
-      newValue = this.applyMinMaxRange(newValue);
-      /* This is to check if we need to switch the min and max handles */
-      if (this.currentTrackingPointer === PointerType.Min && newValue > this.viewHighValue) {
-        this.viewLowValue = this.viewHighValue;
-        this.applyViewChange();
-        this.updateHandles(PointerType.Min, this.maxHandleElement.position);
-        // this.updateAriaAttributes();
-        this.currentTrackingPointer = PointerType.Max;
-        this.minHandleElement.active = false;
-        this.maxHandleElement.active = true;
-        // if (this.viewOptions.keyboardSupport) {
-        //   this.maxHandleElement.focus();
-        // }
-      } else if (this.currentTrackingPointer === PointerType.Max && newValue < this.viewLowValue) {
-        this.viewHighValue = this.viewLowValue;
-        this.applyViewChange();
-        this.updateHandles(PointerType.Max, this.minHandleElement.position);
-        // this.updateAriaAttributes();
-        this.currentTrackingPointer = PointerType.Min;
-        this.maxHandleElement.active = false;
-        this.minHandleElement.active = true;
-        // if (this.viewOptions.keyboardSupport) {
-        //   this.minHandleElement.focus();
-        // }
-      }
+    if (this.currentTrackingPointer === PointerType.Min && newValue > this.viewHighValue) {
+      newValue = this.applyMinMaxRange(this.viewHighValue);
+    } else if (this.currentTrackingPointer === PointerType.Max && newValue < this.viewLowValue) {
+      newValue = this.applyMinMaxRange(this.viewLowValue);
+    }
+    newValue = this.applyMinMaxRange(newValue);
+    /* This is to check if we need to switch the min and max handles */
+    if (this.currentTrackingPointer === PointerType.Min && newValue > this.viewHighValue) {
+      this.viewLowValue = this.viewHighValue;
+      this.applyViewChange();
+      this.updateHandles(PointerType.Min, this.maxHandleElement.position);
+      this.currentTrackingPointer = PointerType.Max;
+      this.minHandleElement.active = false;
+      this.maxHandleElement.active = true;
+    } else if (this.currentTrackingPointer === PointerType.Max && newValue < this.viewLowValue) {
+      this.viewHighValue = this.viewLowValue;
+      this.applyViewChange();
+      this.updateHandles(PointerType.Max, this.minHandleElement.position);
+      this.currentTrackingPointer = PointerType.Min;
+      this.maxHandleElement.active = false;
+      this.minHandleElement.active = true;
     }
 
     if (this.getCurrentTrackingValue() !== newValue) {
@@ -1368,68 +1296,11 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     return newValue;
   }
 
-  private applyPushRange(newValue: number): number {
-    const difference: number =
-      this.currentTrackingPointer === PointerType.Min
-        ? this.viewHighValue - newValue
-        : newValue - this.viewLowValue;
-    const minRange: number = !ValoresHelper.isNullOrUndefined(this.viewOptions.minRange)
-      ? this.viewOptions.minRange
-      : this.viewOptions.step;
-    const maxRange: number = this.viewOptions.maxRange;
-    // if smaller than minRange
-    if (difference < minRange) {
-      if (this.currentTrackingPointer === PointerType.Min) {
-        this.viewHighValue = MathHelper.roundToPrecisionLimit(
-          Math.min(newValue + minRange, this.viewOptions.ceil),
-          this.viewOptions.precisionLimit
-        );
-        newValue = MathHelper.roundToPrecisionLimit(
-          this.viewHighValue - minRange,
-          this.viewOptions.precisionLimit
-        );
-        this.applyViewChange();
-        this.updateHandles(PointerType.Max, this.valueToPosition(this.viewHighValue));
-      } else if (this.currentTrackingPointer === PointerType.Max) {
-        this.viewLowValue = MathHelper.roundToPrecisionLimit(
-          Math.max(newValue - minRange, this.viewOptions.floor),
-          this.viewOptions.precisionLimit
-        );
-        newValue = MathHelper.roundToPrecisionLimit(
-          this.viewLowValue + minRange,
-          this.viewOptions.precisionLimit
-        );
-        this.applyViewChange();
-        this.updateHandles(PointerType.Min, this.valueToPosition(this.viewLowValue));
-      }
-      // this.updateAriaAttributes();
-    } else if (!ValoresHelper.isNullOrUndefined(maxRange) && difference > maxRange) {
-      // if greater than maxRange
-      if (this.currentTrackingPointer === PointerType.Min) {
-        this.viewHighValue = MathHelper.roundToPrecisionLimit(
-          newValue + maxRange,
-          this.viewOptions.precisionLimit
-        );
-        this.applyViewChange();
-        this.updateHandles(PointerType.Max, this.valueToPosition(this.viewHighValue));
-      } else if (this.currentTrackingPointer === PointerType.Max) {
-        this.viewLowValue = MathHelper.roundToPrecisionLimit(
-          newValue - maxRange,
-          this.viewOptions.precisionLimit
-        );
-        this.applyViewChange();
-        this.updateHandles(PointerType.Min, this.valueToPosition(this.viewLowValue));
-      }
-      // this.updateAriaAttributes();
-    }
-    return newValue;
-  }
-
-  private getChangeContext(): ChangeContext {
-    const changeContext: ChangeContext = new ChangeContext();
-    changeContext.pointerType = this.currentTrackingPointer;
-    changeContext.value = +this.value;
-    changeContext.highValue = +this.highValue;
-    return changeContext;
+  private getSliderChange(): SliderChange {
+    const sliderChange: SliderChange = new SliderChange();
+    sliderChange.pointerType = this.currentTrackingPointer;
+    sliderChange.value = +this.value;
+    sliderChange.highValue = +this.highValue;
+    return sliderChange;
   }
 }

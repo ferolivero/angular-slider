@@ -1,7 +1,7 @@
 import { Renderer2 } from '@angular/core';
 import { Subject } from 'rxjs';
 import { tap, throttleTime } from 'rxjs/operators';
-import { EventListener } from './event-listener';
+import { EventListener } from '../models';
 import { ValoresHelper } from './valores-helper';
 
 /**

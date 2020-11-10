@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { CustomFixedRange } from '../data/custom-range';
+import { CustomFixedRange } from '../models';
 import { ExerciseService } from '../shared/exercise.service';
 
 @Component({

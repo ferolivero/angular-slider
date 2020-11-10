@@ -1,8 +1,7 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { CustomNormalRange } from '../data/custom-range';
-import { Options } from '../helpers/options';
+import { CustomNormalRange, Options } from '../models';
 import { ExerciseService } from '../shared/exercise.service';
 
 //import { ProductCategoryService } from '../product-categories/product-category.service';

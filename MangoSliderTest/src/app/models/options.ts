@@ -1,41 +1,11 @@
-import { PointerType } from './pointer-type';
-
-/** Label type */
-export enum LabelType {
-  /** Label above low pointer */
-  Low,
-  /** Label above high pointer */
-  High,
-  /** Label for minimum slider value */
-  Floor,
-  /** Label for maximum slider value */
-  Ceil
-}
-
-/** Function to translate label value into text */
-export type TranslateFunction = (value: number, label: LabelType) => string;
-/** Function to combind */
-// export type CombineLabelsFunction = (minLabel: string, maxLabel: string) => string;
-/** Function to provide legend  */
-export type GetLegendFunction = (value: number) => string;
-
-/** Function converting slider value to slider position */
-export type ValueToPositionFunction = (val: number, minVal: number, maxVal: number) => number;
-
-/** Function converting slider position to slider value */
-export type PositionToValueFunction = (percent: number, minVal: number, maxVal: number) => number;
-
-/**
- * Custom step definition
- *
- * This can be used to specify custom values and legend values for slider ticks
- */
-export interface CustomStepDefinition {
-  /** Value */
-  value: number;
-  /** Legend (label for the value) */
-  legend?: string;
-}
+import {
+  GetLegendFunction,
+  PointerType,
+  PositionToValueFunction,
+  TranslateFunction,
+  ValueToPositionFunction
+} from '../models';
+import { CustomStepDefinition } from '../models/custom-step-definition';
 
 /** Slider options */
 export class Options {
@@ -65,7 +35,7 @@ export class Options {
     the max is moved as well (and vice-versa). The range between min and max is
     defined by the step option (defaults to 1) and can also be overriden by
     the minRange option. Applies to range slider only. */
-  pushRange?: boolean = false;
+  // pushRange?: boolean = false;
 
   /** The minimum value authorized on the slider.
     When using stepsArray, expressed as index into stepsArray. */
@@ -209,7 +179,7 @@ export class Options {
   enforceStepsArray?: boolean = true;
 
   /** Set to true to prevent to user from switching the min and max handles. Applies to range slider only. */
-  noSwitching?: boolean = false;
+  noSwitching?: boolean = true;
 
   /** Set to true to show graphs right to left.
     If vertical is true it will be from top to bottom and left / right arrow functions reversed. */

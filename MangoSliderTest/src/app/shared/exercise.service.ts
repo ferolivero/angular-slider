@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, shareReplay, tap } from 'rxjs/operators';
-import { CustomFixedRange, CustomNormalRange } from '../data/custom-range';
+import { CustomFixedRange, CustomNormalRange } from '../models/custom-range';
 
 @Injectable({
   providedIn: 'root'

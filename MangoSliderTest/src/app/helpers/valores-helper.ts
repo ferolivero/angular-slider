@@ -1,4 +1,4 @@
-import { SliderNodo } from './slider-nodo';
+import { SliderNodo } from '../models/slider-nodo';
 
 /**
  * Funciones para manejar los valores
