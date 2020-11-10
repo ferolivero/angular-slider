@@ -1,57 +1,41 @@
 import {
-  Component,
-  OnInit,
-  ViewChild,
   AfterViewInit,
-  OnChanges,
-  OnDestroy,
+  ChangeDetectorRef,
+  Component,
+  ContentChild,
+  ElementRef,
+  EventEmitter,
   HostBinding,
   HostListener,
   Input,
-  ElementRef,
-  Renderer2,
-  EventEmitter,
+  OnChanges,
+  OnDestroy,
+  OnInit,
   Output,
-  ContentChild,
-  TemplateRef,
-  ChangeDetectorRef,
+  Renderer2,
   SimpleChanges,
-  forwardRef,
-  NgZone
+  TemplateRef,
+  ViewChild
 } from '@angular/core';
-
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-
+import { ControlValueAccessor } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
-import { distinctUntilChanged, filter, throttleTime, tap } from 'rxjs/operators';
-
-import {
-  Options,
-  LabelType,
-  ValueToPositionFunction,
-  PositionToValueFunction,
-  CustomStepDefinition
-} from './../helpers/options';
-import { PointerType } from './../helpers/pointer-type';
-import { ChangeContext } from './../helpers/change-context';
+import { distinctUntilChanged, filter, tap, throttleTime } from 'rxjs/operators';
+import { CustomRangeElementDirective } from '../directives/custom-range-element.directive';
 import { ValoresHelper } from '../helpers/valores-helper';
-import { MathHelper } from './../helpers/math-helper';
-import { EventListener } from './../helpers/event-listener';
-import { EventListenerHelper } from './../helpers/event-listener-helper';
 import { CustomRangeHandleDirective } from './../directives/custom-range-handle.directive';
 import { CustomRangeLabelDirective } from './../directives/custom-range-label.directive';
-import { CustomRangeElementDirective } from '../directives/custom-range-element.directive';
-
-export class Tick {
-  selected: boolean = false;
-  style: any = {};
-  tooltip: string = null;
-  tooltipPlacement: string = null;
-  value: string = null;
-  valueTooltip: string = null;
-  valueTooltipPlacement: string = null;
-  legend: string = null;
-}
+import { ChangeContext } from './../helpers/change-context';
+import { EventListener } from './../helpers/event-listener';
+import { EventListenerHelper } from './../helpers/event-listener-helper';
+import { MathHelper } from './../helpers/math-helper';
+import {
+  CustomStepDefinition,
+  LabelType,
+  Options,
+  PositionToValueFunction,
+  ValueToPositionFunction
+} from './../helpers/options';
+import { PointerType } from './../helpers/pointer-type';
 
 class Dragging {
   active: boolean = false;
@@ -101,19 +85,11 @@ class OutputModelChange extends ModelChange {
   userEventInitiated: boolean;
 }
 
-const NGX_SLIDER_CONTROL_VALUE_ACCESSOR: any = {
-  provide: NG_VALUE_ACCESSOR,
-  /* tslint:disable-next-line: no-use-before-declare */
-  useExisting: forwardRef(() => NgcRangeComponent),
-  multi: true
-};
-
 @Component({
   selector: 'ngc-range',
   templateUrl: './ngc-range.component.html',
   styleUrls: ['./ngc-range.component.scss'],
-  host: { class: 'ngx-slider' },
-  providers: [NGX_SLIDER_CONTROL_VALUE_ACCESSOR]
+  host: { class: 'ngx-slider' }
 })
 export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy, ControlValueAccessor {
   // Model for low value of slider. For simple slider, this is the only input. For range slider, this is the low value.
@@ -151,26 +127,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   @Input() max: number;
   @Input() type: string = 'normal';
 
-  // private manualRefreshSubscription: any;
-  // // Input event that triggers slider refresh (re-positioning of slider elements)
-  // @Input() set manualRefresh(manualRefresh: EventEmitter<void>) {
-  //   this.unsubscribeManualRefresh();
-
-  //   this.manualRefreshSubscription = manualRefresh.subscribe(() => {
-  //     setTimeout(() => this.calculateViewDimensionsAndDetectChanges());
-  //   });
-  // }
-
-  // private triggerFocusSubscription: any;
-  // // Input event that triggers setting focus on given slider handle
-  // @Input() set triggerFocus(triggerFocus: EventEmitter<void>) {
-  //   this.unsubscribeTriggerFocus();
-
-  //   this.triggerFocusSubscription = triggerFocus.subscribe((pointerType: PointerType) => {
-  //     this.focusPointer(pointerType);
-  //   });
-  // }
-
   // Slider type, true means range slider
   public get range(): boolean {
     return !ValoresHelper.isNullOrUndefined(this.value) && !ValoresHelper.isNullOrUndefined(this.highValue);
@@ -205,63 +161,35 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   private currentTrackingPointer: PointerType = null;
   // Internal variable to keep track of the focus element
   private currentFocusPointer: PointerType = null;
-  // Used to call onStart on the first keydown event
-  private firstKeyDown: boolean = false;
   // Current touch id of touch event being handled
   private touchId: number = null;
   // Values recorded when first dragging the bar
   private dragging: Dragging = new Dragging();
 
   /* Slider DOM elements */
-  // Left selection bar outside two handles
-  // @ViewChild('leftOuterSelectionBar', { read: CustomRangeElementDirective })
-  private leftOuterSelectionBarElement: CustomRangeElementDirective;
-
-  // Right selection bar outside two handles
-  // @ViewChild('rightOuterSelectionBar', { read: CustomRangeElementDirective })
-  private rightOuterSelectionBarElement: CustomRangeElementDirective;
-
   // The whole slider bar
-  fullBarElement: CustomRangeElementDirective;
   @ViewChild('fullBar', { read: CustomRangeElementDirective })
-  set customRangeHandleFull(directive: CustomRangeElementDirective) {
-    this.fullBarElement = directive;
-  }
+  fullBarElement: CustomRangeElementDirective;
 
   // Highlight between two handles
-  selectionBarElement: CustomRangeElementDirective;
   @ViewChild('selectionBar', { read: CustomRangeElementDirective })
-  set customRangeElementDirective(directive: CustomRangeElementDirective) {
-    this.selectionBarElement = directive;
-  }
+  selectionBarElement: CustomRangeElementDirective;
 
   // Left slider handle
-  minHandleElement: CustomRangeHandleDirective;
   @ViewChild('minHandle', { read: CustomRangeHandleDirective })
-  set customRangeHandleMin(directive: CustomRangeHandleDirective) {
-    this.minHandleElement = directive;
-  }
+  minHandleElement: CustomRangeHandleDirective;
 
   // Right slider handle
-  maxHandleElement: CustomRangeHandleDirective;
   @ViewChild('maxHandle', { read: CustomRangeHandleDirective })
-  set customRangeHandleMax(directive: CustomRangeHandleDirective) {
-    this.maxHandleElement = directive;
-  }
+  maxHandleElement: CustomRangeHandleDirective;
 
   // Floor label
-  floorLabelElement: CustomRangeLabelDirective;
   @ViewChild('floorLabel', { read: CustomRangeLabelDirective })
-  set customRangeLabelFloor(directive: CustomRangeLabelDirective) {
-    this.floorLabelElement = directive;
-  }
+  floorLabelElement: CustomRangeLabelDirective;
 
   // Ceiling label
-  // ceilLabelElement: CustomRangeLabelDirective;
   @ViewChild('ceilLabel', { read: CustomRangeLabelDirective })
-  // set customRangeLabelCeil(directive: CustomRangeLabelDirective) {
   ceilLabelElement: CustomRangeLabelDirective;
-  // }
 
   // Label above the low value
   @ViewChild('minHandleLabel', { read: CustomRangeLabelDirective })
@@ -275,23 +203,14 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   @ViewChild('combinedLabel', { read: CustomRangeLabelDirective })
   combinedLabelElement: CustomRangeLabelDirective;
 
-  // The ticks
-  // @ViewChild('ticksElement', { read: CustomRangeElementDirective })
-  // ticksElement: CustomRangeElementDirective;
-
   // Optional custom template for displaying tooltips
   @ContentChild('tooltipTemplate')
   public tooltipTemplate: TemplateRef<any>;
 
-  // Host element class bindings
-  // @HostBinding('class.vertical')
-  // public sliderElementVerticalClass: boolean = false;
   @HostBinding('class.animate')
   public sliderElementAnimateClass: boolean = false;
   @HostBinding('class.with-legend')
   public sliderElementWithLegendClass: boolean = false;
-  @HostBinding('attr.disabled')
-  public sliderElementDisabledAttr: string = null;
 
   // CSS styles and class flags
   public barStyle: any = {};
@@ -299,18 +218,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   public maxPointerStyle: any = {};
   public fullBarTransparentClass: boolean = false;
   public selectionBarDraggableClass: boolean = false;
-  // public ticksUnderValuesClass: boolean = false;
-
-  // Whether to show/hide ticks
-  public get showTicks(): boolean {
-    return this.viewOptions.showTicks;
-  }
-
-  /* If tickStep is set or ticksArray is specified.
-     In this case, ticks values should be displayed below the slider. */
-  private intermediateTicks: boolean = false;
-  // Ticks array as displayed in view
-  public ticks: Tick[] = [];
 
   // Event listeners
   private eventListenerHelper: EventListenerHelper = null;
@@ -337,12 +244,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.options.floor = this.min;
     this.options.ceil = this.max;
     Object.assign(this.viewOptions, this.options);
-
-    // We need to run these two things first, before the rest of the init in ngAfterViewInit(),
-    // because these two settings are set through @HostBinding and Angular change detection
-    // mechanism doesn't like them changing in ngAfterViewInit()
-    // this.updateDisabledState();
-    // this.updateVerticalState();
   }
 
   // AfterViewInit interface
@@ -367,7 +268,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.manageElementsStyle();
     // this.updateDisabledState();
     this.calculateViewDimensions();
-    this.addAccessibility();
+    // this.addAccessibility();
     this.updateCeilLabel();
     this.updateFloorLabel();
     this.initHandles();
@@ -407,12 +308,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   // OnDestroy interface
   public ngOnDestroy(): void {
     this.unbindEvents();
-
-    //this.unsubscribeResizeObserver();
     this.unsubscribeInputModelChangeSubject();
     this.unsubscribeOutputModelChangeSubject();
-    // this.unsubscribeManualRefresh();
-    // this.unsubscribeTriggerFocus();
   }
 
   // ControlValueAccessor interface
@@ -442,12 +339,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   public registerOnTouched(onTouchedCallback: any): void {
     this.onTouchedCallback = onTouchedCallback;
   }
-
-  // ControlValueAccessor interface
-  // public setDisabledState(isDisabled: boolean): void {
-  //   this.viewOptions.disabled = isDisabled;
-  //   this.updateDisabledState();
-  // }
 
   @HostListener('window:resize', ['$event'])
   public onResize(event: any): void {
@@ -506,20 +397,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       this.outputModelChangeSubscription = null;
     }
   }
-
-  // private unsubscribeManualRefresh(): void {
-  //   if (!ValoresHelper.isNullOrUndefined(this.manualRefreshSubscription)) {
-  //     this.manualRefreshSubscription.unsubscribe();
-  //     this.manualRefreshSubscription = null;
-  //   }
-  // }
-
-  // private unsubscribeTriggerFocus(): void {
-  //   if (!ValoresHelper.isNullOrUndefined(this.triggerFocusSubscription)) {
-  //     this.triggerFocusSubscription.unsubscribe();
-  //     this.triggerFocusSubscription = null;
-  //   }
-  // }
 
   private getPointerElement(pointerType: PointerType): CustomRangeHandleDirective {
     if (pointerType === PointerType.Min) {
@@ -616,11 +493,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       this.updateHighHandle(this.valueToPosition(this.viewHighValue));
     }
     this.updateSelectionBar();
-    this.updateTicksScale();
-    this.updateAriaAttributes();
-    if (this.range) {
-      this.updateCombinedLabel();
-    }
+    this.updateCombinedLabel();
 
     // At the end, we need to communicate the model change to the outputs as well
     // Normalisation changes are also always forced out to ensure that subscribers always end up in correct state
@@ -821,7 +694,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       (!ValoresHelper.isNullOrUndefined(this.viewOptions.tickStep) ||
         !ValoresHelper.isNullOrUndefined(this.viewOptions.ticksArray))
     ) {
-      this.intermediateTicks = true;
+      // this.intermediateTicks = true;
     }
 
     this.viewOptions.showSelectionBar =
@@ -888,7 +761,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   // Resets slider
   private resetSlider(rebindEvents: boolean = true): void {
     this.manageElementsStyle();
-    this.addAccessibility();
+    // this.addAccessibility();
     this.updateCeilLabel();
     this.updateFloorLabel();
     if (rebindEvents) {
@@ -926,36 +799,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   private manageElementsStyle(): void {
     this.updateScale();
 
-    // this.floorLabelElement.setAlwaysHide(
-    //   this.viewOptions.showTicksValues || this.viewOptions.hideLimitLabels
-    // );
-    // this.ceilLabelElement.setAlwaysHide(this.viewOptions.showTicksValues || this.viewOptions.hideLimitLabels);
-
-    // const hideLabelsForTicks: boolean = this.viewOptions.showTicksValues && !this.intermediateTicks;
-    // this.minHandleLabelElement.setAlwaysHide(hideLabelsForTicks || this.viewOptions.hidePointerLabels);
-    // this.maxHandleLabelElement.setAlwaysHide(
-    //   hideLabelsForTicks || !this.range || this.viewOptions.hidePointerLabels
-    // );
-    // this.combinedLabelElement.setAlwaysHide(
-    //   hideLabelsForTicks || !this.range || this.viewOptions.hidePointerLabels
-    // );
-    // this.selectionBarElement.setAlwaysHide(!this.range && !this.viewOptions.showSelectionBar);
-    // this.leftOuterSelectionBarElement.setAlwaysHide(!this.range || !this.viewOptions.showOuterSelectionBars);
-    // this.rightOuterSelectionBarElement.setAlwaysHide(!this.range || !this.viewOptions.showOuterSelectionBars);
-
     this.fullBarTransparentClass = this.range && this.viewOptions.showOuterSelectionBars;
     this.selectionBarDraggableClass = this.viewOptions.draggableRange && !this.viewOptions.onlyBindHandles;
-    // this.ticksUnderValuesClass = this.intermediateTicks && this.options.showTicksValues;
-
-    // if (this.sliderElementVerticalClass !== this.viewOptions.vertical) {
-    //   this.updateVerticalState();
-    //   // The above change in host component class will not be applied until the end of this cycle
-    //   // However, functions calculating the slider position expect the slider to be already styled as vertical
-    //   // So as a workaround, we need to reset the slider once again to compute the correct values
-    //   setTimeout((): void => {
-    //     this.resetSlider();
-    //   });
-    // }
 
     // Changing animate class may interfere with slider reset/initialisation, so we should set it separately,
     // after all is properly set up
@@ -968,27 +813,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   // Manage the events bindings based on readOnly and disabled options
   private manageEventsBindings(): void {
-    // if (this.viewOptions.disabled || this.viewOptions.readOnly) {
-    //   this.unbindEvents();
-    // } else {
     this.bindEvents();
-    // }
   }
-
-  // Set the disabled state based on disabled option
-  // private updateDisabledState(): void {
-  //   this.sliderElementDisabledAttr = this.viewOptions.disabled ? 'disabled' : null;
-  // }
-
-  // private updateVerticalState(): void {
-  //   this.sliderElementVerticalClass = this.viewOptions.vertical;
-  //   for (const element of this.getAllSliderElements()) {
-  //     // This is also called before ngAfterInit, so need to check that view child bindings work
-  //     if (!ValoresHelper.isNullOrUndefined(element)) {
-  //       // element.setVertical(this.viewOptions.vertical);
-  //     }
-  //   }
-  // }
 
   private updateScale(): void {
     let elements = this.getAllSliderElements();
@@ -1001,15 +827,15 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     return [
       // this.leftOuterSelectionBarElement,
       // this.rightOuterSelectionBarElement,
-      // this.fullBarElement,
-      this.selectionBarElement
-      // this.minHandleElement,
-      // this.maxHandleElement,
-      // this.floorLabelElement,
-      // this.ceilLabelElement,
-      // this.minHandleLabelElement,
-      // this.maxHandleLabelElement,
-      // this.combinedLabelElement,
+      this.fullBarElement,
+      this.selectionBarElement,
+      this.minHandleElement,
+      this.maxHandleElement,
+      this.floorLabelElement,
+      this.ceilLabelElement,
+      this.minHandleLabelElement,
+      this.maxHandleLabelElement,
+      this.combinedLabelElement
       // this.ticksElement
     ];
   }
@@ -1031,62 +857,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
     if (this.range) {
       this.updateCombinedLabel();
-    }
-
-    this.updateTicksScale();
-  }
-
-  // Adds accessibility attributes, run only once during initialization
-  private addAccessibility(): void {
-    this.updateAriaAttributes();
-
-    this.minHandleElement.role = 'slider';
-
-    // if (this.viewOptions.keyboardSupport && !(this.viewOptions.readOnly || this.viewOptions.disabled)) {
-    this.minHandleElement.tabindex = '0';
-    // } else {
-    // this.minHandleElement.tabindex = '';
-    // }
-
-    this.minHandleElement.ariaOrientation = 'horizontal';
-
-    if (!ValoresHelper.isNullOrUndefined(this.viewOptions.ariaLabel)) {
-      this.minHandleElement.ariaLabel = this.viewOptions.ariaLabel;
-    } else if (!ValoresHelper.isNullOrUndefined(this.viewOptions.ariaLabelledBy)) {
-      this.minHandleElement.ariaLabelledBy = this.viewOptions.ariaLabelledBy;
-    }
-
-    if (this.range) {
-      this.maxHandleElement.role = 'slider';
-
-      // if (this.viewOptions.keyboardSupport && !(this.viewOptions.readOnly || this.viewOptions.disabled)) {
-      this.maxHandleElement.tabindex = '0';
-      // } else {
-      // this.maxHandleElement.tabindex = '';
-      // }
-
-      this.maxHandleElement.ariaOrientation = 'horizontal';
-
-      if (!ValoresHelper.isNullOrUndefined(this.viewOptions.ariaLabelHigh)) {
-        this.maxHandleElement.ariaLabel = this.viewOptions.ariaLabelHigh;
-      } else if (!ValoresHelper.isNullOrUndefined(this.viewOptions.ariaLabelledByHigh)) {
-        this.maxHandleElement.ariaLabelledBy = this.viewOptions.ariaLabelledByHigh;
-      }
-    }
-  }
-
-  // Updates aria attributes according to current values
-  private updateAriaAttributes(): void {
-    this.minHandleElement.ariaValueNow = (+this.value).toString();
-    this.minHandleElement.ariaValueText = this.viewOptions.translate(+this.value, LabelType.Low);
-    this.minHandleElement.ariaValueMin = this.viewOptions.floor.toString();
-    this.minHandleElement.ariaValueMax = this.viewOptions.ceil.toString();
-
-    if (this.range) {
-      this.maxHandleElement.ariaValueNow = (+this.highValue).toString();
-      this.maxHandleElement.ariaValueText = this.viewOptions.translate(+this.highValue, LabelType.High);
-      this.maxHandleElement.ariaValueMin = this.viewOptions.floor.toString();
-      this.maxHandleElement.ariaValueMax = this.viewOptions.ceil.toString();
     }
   }
 
@@ -1133,163 +903,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     return this.changeDetectionRef['destroyed'];
   }
 
-  // Update the ticks position
-  private updateTicksScale(): void {
-    if (!this.viewOptions.showTicks) {
-      setTimeout(() => {
-        this.sliderElementWithLegendClass = false;
-      });
-      return;
-    }
-
-    const ticksArray: number[] = !ValoresHelper.isNullOrUndefined(this.viewOptions.ticksArray)
-      ? this.viewOptions.ticksArray
-      : this.getTicksArray();
-    // const translate: string = this.viewOptions.vertical ? 'translateY' : 'translateX';
-    const translate: string = 'translateX';
-
-    if (this.viewOptions.rightToLeft) {
-      ticksArray.reverse();
-    }
-
-    const tickValueStep: number = !ValoresHelper.isNullOrUndefined(this.viewOptions.tickValueStep)
-      ? this.viewOptions.tickValueStep
-      : !ValoresHelper.isNullOrUndefined(this.viewOptions.tickStep)
-      ? this.viewOptions.tickStep
-      : this.viewOptions.step;
-
-    let hasAtLeastOneLegend: boolean = false;
-
-    const newTicks: Tick[] = ticksArray.map(
-      (value: number): Tick => {
-        let position: number = this.valueToPosition(value);
-
-        // if (this.viewOptions.vertical) {
-        //   position = this.maxHandlePosition - position;
-        // }
-
-        const translation: string = translate + '(' + Math.round(position) + 'px)';
-        const tick: Tick = new Tick();
-        tick.selected = this.isTickSelected(value);
-        tick.style = {
-          '-webkit-transform': translation,
-          '-moz-transform': translation,
-          '-o-transform': translation,
-          '-ms-transform': translation,
-          transform: translation
-        };
-        if (tick.selected && !ValoresHelper.isNullOrUndefined(this.viewOptions.getSelectionBarColor)) {
-          tick.style['background-color'] = this.getSelectionBarColor();
-        }
-        if (!tick.selected && !ValoresHelper.isNullOrUndefined(this.viewOptions.getTickColor)) {
-          tick.style['background-color'] = this.getTickColor(value);
-        }
-        if (!ValoresHelper.isNullOrUndefined(this.viewOptions.ticksTooltip)) {
-          tick.tooltip = this.viewOptions.ticksTooltip(value);
-          // tick.tooltipPlacement = this.viewOptions.vertical ? 'right' : 'top';
-          tick.tooltipPlacement = 'top';
-        }
-        if (
-          this.viewOptions.showTicksValues &&
-          !ValoresHelper.isNullOrUndefined(tickValueStep) &&
-          MathHelper.isModuloWithinPrecisionLimit(value, tickValueStep, this.viewOptions.precisionLimit)
-        ) {
-          tick.value = this.getDisplayValue(value, LabelType.TickValue);
-          if (!ValoresHelper.isNullOrUndefined(this.viewOptions.ticksValuesTooltip)) {
-            tick.valueTooltip = this.viewOptions.ticksValuesTooltip(value);
-            // tick.valueTooltipPlacement = this.viewOptions.vertical ? 'right' : 'top';
-            tick.valueTooltipPlacement = 'top';
-          }
-        }
-
-        let legend: string = null;
-        if (!ValoresHelper.isNullOrUndefined(this.viewOptions.stepsArray)) {
-          const step: CustomStepDefinition = this.viewOptions.stepsArray[value];
-          if (!ValoresHelper.isNullOrUndefined(step)) {
-            legend = step.legend;
-          }
-        } else if (!ValoresHelper.isNullOrUndefined(this.viewOptions.getLegend)) {
-          legend = this.viewOptions.getLegend(value);
-        }
-        if (!ValoresHelper.isNullOrUndefined(legend)) {
-          tick.legend = legend;
-          hasAtLeastOneLegend = true;
-        }
-
-        return tick;
-      }
-    );
-
-    setTimeout(() => {
-      this.sliderElementWithLegendClass = hasAtLeastOneLegend;
-    });
-
-    // We should avoid re-creating the ticks array if possible
-    // This both improves performance and makes CSS animations work correctly
-    if (!ValoresHelper.isNullOrUndefined(this.ticks) && this.ticks.length === newTicks.length) {
-      for (let i: number = 0; i < newTicks.length; ++i) {
-        Object.assign(this.ticks[i], newTicks[i]);
-      }
-    } else {
-      this.ticks = newTicks;
-    }
-
-    if (!this.isRefDestroyed()) {
-      this.changeDetectionRef.detectChanges();
-    }
-  }
-
-  private getTicksArray(): number[] {
-    const step: number = !ValoresHelper.isNullOrUndefined(this.viewOptions.tickStep)
-      ? this.viewOptions.tickStep
-      : this.viewOptions.step;
-    const ticksArray: number[] = [];
-
-    const numberOfValues: number =
-      1 +
-      Math.floor(
-        MathHelper.roundToPrecisionLimit(
-          Math.abs(this.viewOptions.ceil - this.viewOptions.floor) / step,
-          this.viewOptions.precisionLimit
-        )
-      );
-    for (let index: number = 0; index < numberOfValues; ++index) {
-      ticksArray.push(
-        MathHelper.roundToPrecisionLimit(
-          this.viewOptions.floor + step * index,
-          this.viewOptions.precisionLimit
-        )
-      );
-    }
-
-    return ticksArray;
-  }
-
-  private isTickSelected(value: number): boolean {
-    if (!this.range) {
-      if (!ValoresHelper.isNullOrUndefined(this.viewOptions.showSelectionBarFromValue)) {
-        const center: number = this.viewOptions.showSelectionBarFromValue;
-        if (this.viewLowValue > center && value >= center && value <= this.viewLowValue) {
-          return true;
-        } else if (this.viewLowValue < center && value <= center && value >= this.viewLowValue) {
-          return true;
-        }
-      } else if (this.viewOptions.showSelectionBarEnd) {
-        if (value >= this.viewLowValue) {
-          return true;
-        }
-      } else if (this.viewOptions.showSelectionBar && value <= this.viewLowValue) {
-        return true;
-      }
-    }
-
-    if (this.range && value >= this.viewLowValue && value <= this.viewHighValue) {
-      return true;
-    }
-
-    return false;
-  }
-
   // Update position of the floor label
   private updateFloorLabel(): void {
     this.floorLabelElement.setValue(this.getDisplayValue(this.viewOptions.floor, LabelType.Floor));
@@ -1302,14 +915,12 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   // Update position of the ceiling label
   private updateCeilLabel(): void {
-    // if (!this.ceilLabelElement.alwaysHide) {
     this.ceilLabelElement.setValue(this.getDisplayValue(this.viewOptions.ceil, LabelType.Ceil));
     this.ceilLabelElement.calculateDimension();
     const position: number = this.viewOptions.rightToLeft
       ? 0
       : this.fullBarElement.dimension - this.ceilLabelElement.dimension;
     this.ceilLabelElement.setPosition(position);
-    // }
   }
 
   // Update slider handles and label positions
@@ -1321,7 +932,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     }
 
     this.updateSelectionBar();
-    this.updateTicksScale();
     if (this.range) {
       this.updateCombinedLabel();
     }
@@ -1428,65 +1038,11 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     }
     this.selectionBarElement.setDimension(dimension);
     this.selectionBarElement.setPosition(position);
-    if (this.range && this.viewOptions.showOuterSelectionBars) {
-      if (this.viewOptions.rightToLeft) {
-        this.rightOuterSelectionBarElement.setDimension(position);
-        this.rightOuterSelectionBarElement.setPosition(0);
-        this.fullBarElement.calculateDimension();
-        this.leftOuterSelectionBarElement.setDimension(
-          this.fullBarElement.dimension - (position + dimension)
-        );
-        this.leftOuterSelectionBarElement.setPosition(position + dimension);
-      } else {
-        this.leftOuterSelectionBarElement.setDimension(position);
-        this.leftOuterSelectionBarElement.setPosition(0);
-        this.fullBarElement.calculateDimension();
-        this.rightOuterSelectionBarElement.setDimension(
-          this.fullBarElement.dimension - (position + dimension)
-        );
-        this.rightOuterSelectionBarElement.setPosition(position + dimension);
-      }
-    }
     if (!ValoresHelper.isNullOrUndefined(this.viewOptions.getSelectionBarColor)) {
       const color: string = this.getSelectionBarColor();
       this.barStyle = {
         backgroundColor: color
       };
-    } else if (!ValoresHelper.isNullOrUndefined(this.viewOptions.selectionBarGradient)) {
-      const offset: number = !ValoresHelper.isNullOrUndefined(this.viewOptions.showSelectionBarFromValue)
-        ? this.valueToPosition(this.viewOptions.showSelectionBarFromValue)
-        : 0;
-      const reversed: boolean =
-        (offset - position > 0 && !isSelectionBarFromRight) ||
-        (offset - position <= 0 && isSelectionBarFromRight);
-      // const direction: string = this.viewOptions.vertical
-      //   ? reversed
-      //     ? 'bottom'
-      //     : 'top'
-      //   : reversed
-      //   ? 'left'
-      //   : 'right';
-      const direction: string = reversed ? 'left' : 'right';
-      this.barStyle = {
-        backgroundImage:
-          'linear-gradient(to ' +
-          direction +
-          ', ' +
-          this.viewOptions.selectionBarGradient.from +
-          ' 0%,' +
-          this.viewOptions.selectionBarGradient.to +
-          ' 100%)'
-      };
-      // if (this.viewOptions.vertical) {
-      //   this.barStyle.backgroundPosition =
-      //     'center ' + (offset + dimension + position + (reversed ? -this.handleHalfDimension : 0)) + 'px';
-      //   this.barStyle.backgroundSize =
-      //     '100% ' + (this.fullBarElement.dimension - this.handleHalfDimension) + 'px';
-      // } else {
-      this.barStyle.backgroundPosition =
-        offset - position + (reversed ? this.handleHalfDimension : 0) + 'px center';
-      this.barStyle.backgroundSize = this.fullBarElement.dimension - this.handleHalfDimension + 'px 100%';
-      // }
     }
   }
 
@@ -1506,11 +1062,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     return this.viewOptions.getPointerColor(this.value, pointerType);
   }
 
-  // Wrapper around the getTickColor of the user to pass to correct parameters
-  private getTickColor(value: number): string {
-    return this.viewOptions.getTickColor(value);
-  }
-
   // Update combined label position and value
   private updateCombinedLabel(): void {
     let isLabelOverlap: boolean = null;
@@ -1524,39 +1075,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         this.maxHandleLabelElement.position;
     }
 
-    // if (isLabelOverlap) {
-    //   const lowDisplayValue: string = this.getDisplayValue(this.viewLowValue, LabelType.Low);
-    //   const highDisplayValue: string = this.getDisplayValue(this.viewHighValue, LabelType.High);
-    //   const combinedLabelValue: string = this.viewOptions.rightToLeft
-    //     ? this.viewOptions.combineLabels(highDisplayValue, lowDisplayValue)
-    //     : this.viewOptions.combineLabels(lowDisplayValue, highDisplayValue);
-
-    //   this.combinedLabelElement.setValue(combinedLabelValue);
-    //   const pos: number = this.viewOptions.boundPointerLabels
-    //     ? Math.min(
-    //         Math.max(
-    //           this.selectionBarElement.position +
-    //             this.selectionBarElement.dimension / 2 -
-    //             this.combinedLabelElement.dimension / 2,
-    //           0
-    //         ),
-    //         this.fullBarElement.dimension - this.combinedLabelElement.dimension
-    //       )
-    //     : this.selectionBarElement.position +
-    //       this.selectionBarElement.dimension / 2 -
-    //       this.combinedLabelElement.dimension / 2;
-
-    //   this.combinedLabelElement.setPosition(pos);
-    //   this.minHandleLabelElement.hide();
-    //   this.maxHandleLabelElement.hide();
-    //   this.combinedLabelElement.show();
-    // } else {
     this.updateHighHandle(this.valueToPosition(this.viewHighValue));
     this.updateLowHandle(this.valueToPosition(this.viewLowValue));
-    //   this.maxHandleLabelElement.show();
-    //   this.minHandleLabelElement.show();
-    //   this.combinedLabelElement.hide();
-    // }
     if (this.viewOptions.autoHideLimitLabels) {
       this.updateFloorAndCeilLabelsVisibility();
     }
@@ -1623,46 +1143,18 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     return !ValoresHelper.isNullOrUndefined(value) ? value : 0;
   }
 
-  // Get the X-coordinate or Y-coordinate of an event
-  private getEventXY(event: MouseEvent | TouchEvent, targetTouchId?: number): number {
-    if (event instanceof MouseEvent) {
-      // return this.viewOptions.vertical ? event.clientY : event.clientX;
-      return event.clientX;
-    }
-
-    let touchIndex: number = 0;
-    const touches: TouchList = event.touches;
-    if (!ValoresHelper.isNullOrUndefined(targetTouchId)) {
-      for (let i: number = 0; i < touches.length; i++) {
-        if (touches[i].identifier === targetTouchId) {
-          touchIndex = i;
-          break;
-        }
-      }
-    }
-
-    // Return the target touch or if the target touch was not found in the event
-    // returns the coordinates of the first touch
-    // return this.viewOptions.vertical ? touches[touchIndex].clientY : touches[touchIndex].clientX;
-    return touches[touchIndex].clientX;
-  }
-
   // Compute the event position depending on whether the slider is horizontal or vertical
-  private getEventPosition(event: MouseEvent | TouchEvent, targetTouchId?: number): number {
+  private getEventPosition(event: MouseEvent): number {
     const sliderElementBoundingRect: ClientRect = this.elementRef.nativeElement.getBoundingClientRect();
 
     const sliderPos: number = sliderElementBoundingRect.left;
     let eventPos: number = 0;
-    // if (this.viewOptions.vertical) {
-    //   eventPos = -this.getEventXY(event, targetTouchId) + sliderPos;
-    // } else {
-    eventPos = this.getEventXY(event, targetTouchId) - sliderPos;
-    // }
+    eventPos = event.clientX - sliderPos;
     return eventPos * this.viewOptions.scale - this.handleHalfDimension;
   }
 
   // Get the handle closest to an event
-  private getNearestHandle(event: MouseEvent | TouchEvent): PointerType {
+  private getNearestHandle(event: MouseEvent): PointerType {
     if (!this.range) {
       return PointerType.Min;
     }
@@ -1714,42 +1206,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         this.fullBarElement.on('mousedown', (event: MouseEvent): void =>
           this.onStart(null, event, true, true, true)
         );
-        // this.ticksElement.on('mousedown', (event: MouseEvent): void =>
-        //   this.onStart(null, event, true, true, true, true)
-        // );
       }
     }
-
-    // if (!this.viewOptions.onlyBindHandles) {
-    //   this.selectionBarElement.onPassive('touchstart', (event: TouchEvent): void =>
-    //     this.onBarStart(null, draggableRange, event, true, true, true)
-    //   );
-    // }
-    // if (this.viewOptions.draggableRangeOnly) {
-    //   this.minHandleElement.onPassive('touchstart', (event: TouchEvent): void =>
-    //     this.onBarStart(PointerType.Min, draggableRange, event, true, true)
-    //   );
-    //   this.maxHandleElement.onPassive('touchstart', (event: TouchEvent): void =>
-    //     this.onBarStart(PointerType.Max, draggableRange, event, true, true)
-    //   );
-    // } else {
-    //   this.minHandleElement.onPassive('touchstart', (event: TouchEvent): void =>
-    //     this.onStart(PointerType.Min, event, true, true)
-    //   );
-    //   if (this.range) {
-    //     this.maxHandleElement.onPassive('touchstart', (event: TouchEvent): void =>
-    //       this.onStart(PointerType.Max, event, true, true)
-    //     );
-    //   }
-    //   if (!this.viewOptions.onlyBindHandles) {
-    //     this.fullBarElement.onPassive('touchstart', (event: TouchEvent): void =>
-    //       this.onStart(null, event, true, true, true)
-    //     );
-    //     this.ticksElement.onPassive('touchstart', (event: TouchEvent): void =>
-    //       this.onStart(null, event, false, false, true, true)
-    //     );
-    //   }
-    // }
 
     if (this.viewOptions.keyboardSupport) {
       this.minHandleElement.on('focus', (): void => this.onPointerFocus(PointerType.Min));
@@ -1785,7 +1243,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   private onBarStart(
     pointerType: PointerType,
     draggableRange: boolean,
-    event: MouseEvent | TouchEvent,
+    event: MouseEvent,
     bindMove: boolean,
     bindEnd: boolean,
     simulateImmediateMove?: boolean,
@@ -1801,7 +1259,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   // onStart event handler
   private onStart(
     pointerType: PointerType,
-    event: MouseEvent | TouchEvent,
+    event: MouseEvent,
     bindMove: boolean,
     bindEnd: boolean,
     simulateImmediateMove?: boolean,
@@ -1833,58 +1291,29 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     if (bindMove) {
       this.unsubscribeOnMove();
 
-      const onMoveCallback: (e: MouseEvent | TouchEvent) => void = (e: MouseEvent | TouchEvent): void =>
+      const onMoveCallback: (e: MouseEvent) => void = (e: MouseEvent): void =>
         this.dragging.active ? this.onDragMove(e) : this.onMove(e);
 
-      // if (CompatibilityHelper.isTouchEvent(event)) {
-      //   this.onMoveEventListener = this.eventListenerHelper.attachPassiveEventListener(
-      //     document,
-      //     'touchmove',
-      //     onMoveCallback,
-      //     this.viewOptions.touchEventsInterval
-      //   );
-      // } else {
       this.onMoveEventListener = this.eventListenerHelper.attachEventListener(
         document,
         'mousemove',
         onMoveCallback,
         this.viewOptions.mouseEventsInterval
       );
-      // }
     }
 
     if (bindEnd) {
       this.unsubscribeOnEnd();
 
-      const onEndCallback: (e: MouseEvent | TouchEvent) => void = (e: MouseEvent | TouchEvent): void =>
-        this.onEnd(e);
-
-      // if (CompatibilityHelper.isTouchEvent(event)) {
-      //   this.onEndEventListener = this.eventListenerHelper.attachPassiveEventListener(
-      //     document,
-      //     'touchend',
-      //     onEndCallback
-      //   );
-      // } else {
+      const onEndCallback: (e: MouseEvent) => void = (e: MouseEvent): void => this.onEnd(e);
       this.onEndEventListener = this.eventListenerHelper.attachEventListener(
         document,
         'mouseup',
         onEndCallback
       );
-      // }
     }
 
     this.userChangeStart.emit(this.getChangeContext());
-
-    // if (
-    //   CompatibilityHelper.isTouchEvent(event) &&
-    //   !ValueHelper.isNullOrUndefined((event as TouchEvent).changedTouches)
-    // ) {
-    //   // Store the touch identifier
-    //   if (ValueHelper.isNullOrUndefined(this.touchId)) {
-    //     this.touchId = (event as TouchEvent).changedTouches[0].identifier;
-    //   }
-    // }
 
     // Click events, either with mouse or touch gesture are weird. Sometimes they result in full
     // start, move, end sequence, and sometimes, they don't - they only invoke mousedown
@@ -1899,23 +1328,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   }
 
   // onMove event handler
-  private onMove(event: MouseEvent | TouchEvent, fromTick?: boolean): void {
+  private onMove(event: MouseEvent, fromTick?: boolean): void {
     let touchForThisSlider: Touch = null;
-
-    // if (CompatibilityHelper.isTouchEvent(event)) {
-    //   const changedTouches: TouchList = (event as TouchEvent).changedTouches;
-    //   for (let i: number = 0; i < changedTouches.length; i++) {
-    //     if (changedTouches[i].identifier === this.touchId) {
-    //       touchForThisSlider = changedTouches[i];
-    //       break;
-    //     }
-    //   }
-
-    //   if (ValueHelper.isNullOrUndefined(touchForThisSlider)) {
-    //     return;
-    //   }
-    // }
-
     if (this.viewOptions.animate && !this.viewOptions.animateOnMove) {
       if (this.moving) {
         this.sliderElementAnimateClass = false;
@@ -1924,9 +1338,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
     this.moving = true;
 
-    const newPos: number = !ValoresHelper.isNullOrUndefined(touchForThisSlider)
-      ? this.getEventPosition(event, touchForThisSlider.identifier)
-      : this.getEventPosition(event);
+    const newPos: number = this.getEventPosition(event);
     let newValue: number;
     const ceilValue: number = this.viewOptions.rightToLeft ? this.viewOptions.floor : this.viewOptions.ceil;
     const floorValue: number = this.viewOptions.rightToLeft ? this.viewOptions.ceil : this.viewOptions.floor;
@@ -1946,14 +1358,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.positionTrackingHandle(newValue);
   }
 
-  private onEnd(event: MouseEvent | TouchEvent): void {
-    // if (CompatibilityHelper.isTouchEvent(event)) {
-    //   const changedTouches: TouchList = (event as TouchEvent).changedTouches;
-    //   if (changedTouches[0].identifier !== this.touchId) {
-    //     return;
-    //   }
-    // }
-
+  private onEnd(event: MouseEvent): void {
     this.moving = false;
     if (this.viewOptions.animate) {
       this.sliderElementAnimateClass = true;
@@ -1977,24 +1382,15 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   private onPointerFocus(pointerType: PointerType): void {
     const pointerElement: CustomRangeHandleDirective = this.getPointerElement(pointerType);
     pointerElement.on('blur', (): void => this.onPointerBlur(pointerElement));
-    pointerElement.on('keydown', (event: KeyboardEvent): void => this.onKeyboardEvent(event));
-    pointerElement.on('keyup', (): void => this.onKeyUp());
     pointerElement.active = true;
 
     this.currentTrackingPointer = pointerType;
     this.currentFocusPointer = pointerType;
-    this.firstKeyDown = true;
-  }
-
-  private onKeyUp(): void {
-    this.firstKeyDown = true;
-    this.userChangeEnd.emit(this.getChangeContext());
+    // this.firstKeyDown = true;
   }
 
   private onPointerBlur(pointer: CustomRangeHandleDirective): void {
     pointer.off('blur');
-    pointer.off('keydown');
-    pointer.off('keyup');
     pointer.active = false;
     if (ValoresHelper.isNullOrUndefined(this.touchId)) {
       this.currentTrackingPointer = null;
@@ -2002,111 +1398,10 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     }
   }
 
-  private getKeyActions(currentValue: number): { [key: string]: number } {
-    const valueRange: number = this.viewOptions.ceil - this.viewOptions.floor;
-
-    let increaseStep: number = currentValue + this.viewOptions.step;
-    let decreaseStep: number = currentValue - this.viewOptions.step;
-    let increasePage: number = currentValue + valueRange / 10;
-    let decreasePage: number = currentValue - valueRange / 10;
-
-    if (this.viewOptions.reversedControls) {
-      increaseStep = currentValue - this.viewOptions.step;
-      decreaseStep = currentValue + this.viewOptions.step;
-      increasePage = currentValue - valueRange / 10;
-      decreasePage = currentValue + valueRange / 10;
-    }
-
-    // Left to right default actions
-    const actions: { [key: string]: number } = {
-      UP: increaseStep,
-      DOWN: decreaseStep,
-      LEFT: decreaseStep,
-      RIGHT: increaseStep,
-      PAGEUP: increasePage,
-      PAGEDOWN: decreasePage,
-      HOME: this.viewOptions.reversedControls ? this.viewOptions.ceil : this.viewOptions.floor,
-      END: this.viewOptions.reversedControls ? this.viewOptions.floor : this.viewOptions.ceil
-    };
-    // right to left means swapping right and left arrows
-    if (this.viewOptions.rightToLeft) {
-      actions.LEFT = increaseStep;
-      actions.RIGHT = decreaseStep;
-      // right to left and vertical means we also swap up and down
-      // if (this.viewOptions.vertical) {
-      //   actions.UP = decreaseStep;
-      //   actions.DOWN = increaseStep;
-      // }
-    }
-    return actions;
-  }
-
-  private onKeyboardEvent(event: KeyboardEvent): void {
-    const currentValue: number = this.getCurrentTrackingValue();
-    const keyCode: number = !ValoresHelper.isNullOrUndefined(event.keyCode) ? event.keyCode : event.which;
-    const keys: { [keyCode: number]: string } = {
-      38: 'UP',
-      40: 'DOWN',
-      37: 'LEFT',
-      39: 'RIGHT',
-      33: 'PAGEUP',
-      34: 'PAGEDOWN',
-      36: 'HOME',
-      35: 'END'
-    };
-    const actions: { [key: string]: number } = this.getKeyActions(currentValue);
-    const key: string = keys[keyCode];
-    const action: number = actions[key];
-
-    if (
-      ValoresHelper.isNullOrUndefined(action) ||
-      ValoresHelper.isNullOrUndefined(this.currentTrackingPointer)
-    ) {
-      return;
-    }
-    event.preventDefault();
-
-    if (this.firstKeyDown) {
-      this.firstKeyDown = false;
-      this.userChangeStart.emit(this.getChangeContext());
-    }
-
-    const actionValue: number = MathHelper.clampToRange(
-      action,
-      this.viewOptions.floor,
-      this.viewOptions.ceil
-    );
-    const newValue: number = this.roundStep(actionValue);
-    if (!this.viewOptions.draggableRangeOnly) {
-      this.positionTrackingHandle(newValue);
-    } else {
-      const difference: number = this.viewHighValue - this.viewLowValue;
-      let newMinValue: number;
-      let newMaxValue: number;
-
-      if (this.currentTrackingPointer === PointerType.Min) {
-        newMinValue = newValue;
-        newMaxValue = newValue + difference;
-        if (newMaxValue > this.viewOptions.ceil) {
-          newMaxValue = this.viewOptions.ceil;
-          newMinValue = newMaxValue - difference;
-        }
-      } else if (this.currentTrackingPointer === PointerType.Max) {
-        newMaxValue = newValue;
-        newMinValue = newValue - difference;
-        if (newMinValue < this.viewOptions.floor) {
-          newMinValue = this.viewOptions.floor;
-          newMaxValue = newMinValue + difference;
-        }
-      }
-      this.positionTrackingBar(newMinValue, newMaxValue);
-    }
-  }
-
   // onDragStart event handler, handles dragging of the middle bar
   private onDragStart(
     pointerType: PointerType,
-    event: MouseEvent | TouchEvent,
+    event: MouseEvent,
     bindMove: boolean,
     bindEnd: boolean
   ): void {
@@ -2167,7 +1462,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     return this.roundStep(value);
   }
 
-  private onDragMove(event?: MouseEvent | TouchEvent): void {
+  private onDragMove(event?: MouseEvent): void {
     const newPos: number = this.getEventPosition(event);
 
     if (this.viewOptions.animate && !this.viewOptions.animateOnMove) {
@@ -2269,7 +1564,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
           this.viewLowValue = this.viewHighValue;
           this.applyViewChange();
           this.updateHandles(PointerType.Min, this.maxHandleElement.position);
-          this.updateAriaAttributes();
+          // this.updateAriaAttributes();
           this.currentTrackingPointer = PointerType.Max;
           this.minHandleElement.active = false;
           this.maxHandleElement.active = true;
@@ -2280,7 +1575,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
           this.viewHighValue = this.viewLowValue;
           this.applyViewChange();
           this.updateHandles(PointerType.Max, this.minHandleElement.position);
-          this.updateAriaAttributes();
+          // this.updateAriaAttributes();
           this.currentTrackingPointer = PointerType.Min;
           this.maxHandleElement.active = false;
           this.minHandleElement.active = true;
@@ -2300,7 +1595,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         this.applyViewChange();
       }
       this.updateHandles(this.currentTrackingPointer, this.valueToPosition(newValue));
-      this.updateAriaAttributes();
+      // this.updateAriaAttributes();
     }
   }
 
@@ -2385,7 +1680,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         this.applyViewChange();
         this.updateHandles(PointerType.Min, this.valueToPosition(this.viewLowValue));
       }
-      this.updateAriaAttributes();
+      // this.updateAriaAttributes();
     } else if (!ValoresHelper.isNullOrUndefined(maxRange) && difference > maxRange) {
       // if greater than maxRange
       if (this.currentTrackingPointer === PointerType.Min) {
@@ -2403,7 +1698,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         this.applyViewChange();
         this.updateHandles(PointerType.Min, this.valueToPosition(this.viewLowValue));
       }
-      this.updateAriaAttributes();
+      // this.updateAriaAttributes();
     }
     return newValue;
   }

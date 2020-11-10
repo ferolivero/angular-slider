@@ -1,7 +1,6 @@
 import { Renderer2 } from '@angular/core';
 import { Subject } from 'rxjs';
-import { throttleTime, tap } from 'rxjs/operators';
-
+import { tap, throttleTime } from 'rxjs/operators';
 import { EventListener } from './event-listener';
 import { ValoresHelper } from './valores-helper';
 
@@ -10,39 +9,6 @@ import { ValoresHelper } from './valores-helper';
  */
 export class EventListenerHelper {
   constructor(private renderer: Renderer2) {}
-
-  // public attachPassiveEventListener(nativeElement: any, eventName: string, callback: (event: any) => void,
-  //     throttleInterval?: number): EventListener {
-  //   // Only use passive event listeners if the browser supports it
-  //   if (detectPassiveEvents.hasSupport !== true) {
-  //     return this.attachEventListener(nativeElement, eventName, callback, throttleInterval);
-  //   }
-
-  //   // Angular doesn't support passive event handlers (yet), so we need to roll our own code using native functions
-  //   const listener: EventListener = new EventListener();
-  //   listener.eventName = eventName;
-  //   listener.events = new Subject<Event>();
-
-  //   const observerCallback: (event: Event) => void = (event: Event): void => {
-  //     listener.events.next(event);
-  //   };
-  //   nativeElement.addEventListener(eventName, observerCallback, {passive: true, capture: false});
-
-  //   listener.teardownCallback = (): void => {
-  //     nativeElement.removeEventListener(eventName, observerCallback, {passive: true, capture: false});
-  //   };
-
-  //   listener.eventsSubscription = listener.events
-  //     .pipe((!ValueHelper.isNullOrUndefined(throttleInterval))
-  //       ? throttleTime(throttleInterval, undefined, { leading: true, trailing: true})
-  //       : tap(() => {}) // no-op
-  //     )
-  //     .subscribe((event: Event) => {
-  //       callback(event);
-  //     });
-
-  //   return listener;
-  // }
 
   public detachEventListener(eventListener: EventListener): void {
     if (!ValoresHelper.isNullOrUndefined(eventListener.eventsSubscription)) {

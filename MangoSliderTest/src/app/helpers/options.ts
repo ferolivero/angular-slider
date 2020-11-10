@@ -9,9 +9,7 @@ export enum LabelType {
   /** Label for minimum slider value */
   Floor,
   /** Label for maximum slider value */
-  Ceil,
-  /** Label below legend tick */
-  TickValue
+  Ceil
 }
 
 /** Function to translate label value into text */
@@ -278,10 +276,6 @@ export class Options {
     Values used in calculations will be rounded to this number of significant digits
     to prevent accumulating small floating-point errors. */
   precisionLimit?: number = 12;
-
-  /** Use to display the selection bar as a gradient.
-    The given object must contain from and to properties which are colors. */
-  selectionBarGradient?: { from: string; to: string } = null;
 
   /** Use to add a label directly to the slider for accessibility. Adds the aria-label attribute. */
   ariaLabel?: string = null;
