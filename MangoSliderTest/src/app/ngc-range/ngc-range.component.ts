@@ -127,11 +127,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   @Input() max: number;
   @Input() type: string = 'normal';
 
-  // Slider type, true means range slider
-  public get range(): boolean {
-    return !ValoresHelper.isNullOrUndefined(this.value) && !ValoresHelper.isNullOrUndefined(this.highValue);
-  }
-
   // Set to true if init method already executed
   private initHasRun: boolean = false;
 
@@ -254,11 +249,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.renormaliseModelValues();
 
     this.viewLowValue = this.modelValueToViewValue(this.value);
-    if (this.range) {
-      this.viewHighValue = this.modelValueToViewValue(this.highValue);
-    } else {
-      this.viewHighValue = null;
-    }
+    this.viewHighValue = this.modelValueToViewValue(this.highValue);
 
     this.manageElementsStyle();
     this.calculateViewDimensions();
@@ -437,9 +428,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   private applyViewChange(): void {
     this.value = this.viewValueToModelValue(this.viewLowValue);
-    if (this.range) {
-      this.highValue = this.viewValueToModelValue(this.viewHighValue);
-    }
+    this.highValue = this.viewValueToModelValue(this.viewHighValue);
 
     this.outputModelChangeSubject.next({
       value: this.value,
@@ -472,18 +461,11 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     }
 
     this.viewLowValue = this.modelValueToViewValue(normalisedModelChange.value);
-    if (this.range) {
-      this.viewHighValue = this.modelValueToViewValue(normalisedModelChange.highValue);
-    } else {
-      this.viewHighValue = null;
-    }
+    this.viewHighValue = this.modelValueToViewValue(normalisedModelChange.highValue);
 
     this.updateLowHandle(this.valueToPosition(this.viewLowValue));
-    if (this.range) {
-      this.updateHighHandle(this.valueToPosition(this.viewHighValue));
-    }
+    this.updateHighHandle(this.valueToPosition(this.viewHighValue));
     this.updateSelectionBar();
-    // this.updateCombinedLabel();
 
     // At the end, we need to communicate the model change to the outputs as well
     // Normalisation changes are also always forced out to ensure that subscribers always end up in correct state
@@ -499,9 +481,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   private publishOutputModelChange(modelChange: OutputModelChange): void {
     const emitOutputs: () => void = (): void => {
       this.valueChange.emit(modelChange.value);
-      if (this.range) {
-        this.highValueChange.emit(modelChange.highValue);
-      }
+      this.highValueChange.emit(modelChange.highValue);
 
       if (!ValoresHelper.isNullOrUndefined(this.onChangeCallback)) {
         this.onChangeCallback([modelChange.value, modelChange.highValue]);
@@ -539,13 +519,11 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         );
         normalisedInput.value = this.viewOptions.stepsArray[valueIndex].value;
 
-        if (this.range) {
-          const highValueIndex: number = ValoresHelper.findStepIndex(
-            normalisedInput.highValue,
-            this.viewOptions.stepsArray
-          );
-          normalisedInput.highValue = this.viewOptions.stepsArray[highValueIndex].value;
-        }
+        const highValueIndex: number = ValoresHelper.findStepIndex(
+          normalisedInput.highValue,
+          this.viewOptions.stepsArray
+        );
+        normalisedInput.highValue = this.viewOptions.stepsArray[highValueIndex].value;
       }
 
       return normalisedInput;
@@ -553,9 +531,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
     if (this.viewOptions.enforceStep) {
       normalisedInput.value = this.roundStep(normalisedInput.value);
-      if (this.range) {
-        normalisedInput.highValue = this.roundStep(normalisedInput.highValue);
-      }
+      normalisedInput.highValue = this.roundStep(normalisedInput.highValue);
     }
 
     if (this.viewOptions.enforceRange) {
@@ -565,16 +541,14 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         this.viewOptions.ceil
       );
 
-      if (this.range) {
-        normalisedInput.highValue = MathHelper.clampToRange(
-          normalisedInput.highValue,
-          this.viewOptions.floor,
-          this.viewOptions.ceil
-        );
-      }
+      normalisedInput.highValue = MathHelper.clampToRange(
+        normalisedInput.highValue,
+        this.viewOptions.floor,
+        this.viewOptions.ceil
+      );
 
       // Make sure that range slider invariant (value <= highValue) is always satisfied
-      if (this.range && input.value > input.highValue) {
+      if (input.value > input.highValue) {
         // We know that both values are now clamped correctly, they may just be in the wrong order
         // So the easy solution is to swap them... except swapping is sometimes disabled in options, so we make the two values the same
         if (this.viewOptions.noSwitching) {
@@ -617,21 +591,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     const previousInputEventsInterval: number = this.viewOptions.inputEventsInterval;
     const previousOutputEventsInterval: number = this.viewOptions.outputEventsInterval;
 
-    const previousOptionsInfluencingEventBindings: boolean[] = this.getOptionsInfluencingEventBindings(
-      this.viewOptions
-    );
-
     this.applyOptions();
-
-    const newOptionsInfluencingEventBindings: boolean[] = this.getOptionsInfluencingEventBindings(
-      this.viewOptions
-    );
-    // Avoid re-binding events in case nothing changes that can influence it
-    // It makes it possible to change options while dragging the slider
-    const rebindEvents: boolean = !ValoresHelper.areArraysEqual(
-      previousOptionsInfluencingEventBindings,
-      newOptionsInfluencingEventBindings
-    );
 
     if (previousInputEventsInterval !== this.viewOptions.inputEventsInterval) {
       this.unsubscribeInputModelChangeSubject();
@@ -647,13 +607,9 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.renormaliseModelValues();
 
     this.viewLowValue = this.modelValueToViewValue(this.value);
-    if (this.range) {
-      this.viewHighValue = this.modelValueToViewValue(this.highValue);
-    } else {
-      this.viewHighValue = null;
-    }
+    this.viewHighValue = this.modelValueToViewValue(this.highValue);
 
-    this.resetSlider(rebindEvents);
+    this.resetSlider();
   }
 
   // Read the user options and apply them to the slider model
@@ -732,7 +688,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   private manageElementsStyle(): void {
     this.updateScale();
 
-    this.fullBarTransparentClass = this.range && this.viewOptions.showOuterSelectionBars;
+    this.fullBarTransparentClass = this.viewOptions.showOuterSelectionBars;
 
     // Changing animate class may interfere with slider reset/initialisation, so we should set it separately,
     // after all is properly set up
@@ -914,40 +870,12 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   private updateSelectionBar(): void {
     let position: number = 0;
     let dimension: number = 0;
-    const isSelectionBarFromRight: boolean = this.viewOptions.rightToLeft
-      ? !this.viewOptions.showSelectionBarEnd
-      : this.viewOptions.showSelectionBarEnd;
     const positionForRange: number = this.viewOptions.rightToLeft
       ? this.maxHandleElement.position + this.handleHalfDimension
       : this.minHandleElement.position + this.handleHalfDimension;
 
-    if (this.range) {
-      dimension = Math.abs(this.maxHandleElement.position - this.minHandleElement.position);
-      position = positionForRange;
-    } else {
-      if (!ValoresHelper.isNullOrUndefined(this.viewOptions.showSelectionBarFromValue)) {
-        const center: number = this.viewOptions.showSelectionBarFromValue;
-        const centerPosition: number = this.valueToPosition(center);
-        const isModelGreaterThanCenter: boolean = this.viewOptions.rightToLeft
-          ? this.viewLowValue <= center
-          : this.viewLowValue > center;
-        if (isModelGreaterThanCenter) {
-          dimension = this.minHandleElement.position - centerPosition;
-          position = centerPosition + this.handleHalfDimension;
-        } else {
-          dimension = centerPosition - this.minHandleElement.position;
-          position = this.minHandleElement.position + this.handleHalfDimension;
-        }
-      } else if (isSelectionBarFromRight) {
-        dimension = Math.ceil(
-          Math.abs(this.maxHandlePosition - this.minHandleElement.position) + this.handleHalfDimension
-        );
-        position = Math.floor(this.minHandleElement.position + this.handleHalfDimension);
-      } else {
-        dimension = this.minHandleElement.position + this.handleHalfDimension;
-        position = 0;
-      }
-    }
+    dimension = Math.abs(this.maxHandleElement.position - this.minHandleElement.position);
+    position = positionForRange;
     this.selectionBarElement.setDimension(dimension);
     this.selectionBarElement.setPosition(position);
     if (!ValoresHelper.isNullOrUndefined(this.viewOptions.getSelectionBarColor)) {
@@ -960,10 +888,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   // Wrapper around the getSelectionBarColor of the user to pass to correct parameters
   private getSelectionBarColor(): string {
-    if (this.range) {
-      return this.viewOptions.getSelectionBarColor(this.value, this.highValue);
-    }
-    return this.viewOptions.getSelectionBarColor(this.value);
+    return this.viewOptions.getSelectionBarColor(this.value, this.highValue);
   }
 
   // Wrapper around the getPointerColor of the user to pass to  correct parameters
@@ -973,26 +898,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     }
     return this.viewOptions.getPointerColor(this.value, pointerType);
   }
-
-  // Update combined label position and value
-  // private updateCombinedLabel(): void {
-  //   let isLabelOverlap: boolean = null;
-  //   if (this.viewOptions.rightToLeft) {
-  //     isLabelOverlap =
-  //       this.minHandleLabelElement.position - this.minHandleLabelElement.dimension - 10 <=
-  //       this.maxHandleLabelElement.position;
-  //   } else {
-  //     isLabelOverlap =
-  //       this.minHandleLabelElement.position + this.minHandleLabelElement.dimension + 10 >=
-  //       this.maxHandleLabelElement.position;
-  //   }
-
-  //   this.updateHighHandle(this.valueToPosition(this.viewHighValue));
-  //   this.updateLowHandle(this.valueToPosition(this.viewLowValue));
-  //   if (this.viewOptions.autoHideLimitLabels) {
-  //     this.updateFloorAndCeilLabelsVisibility();
-  //   }
-  // }
 
   // Return the translated value if a translate function is provided else the original value
   private getDisplayValue(value: number, which: LabelType): string {
@@ -1100,17 +1005,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.fullBarElement.on('mousedown', (event: MouseEvent): void =>
       this.onStart(null, event, true, true, true)
     );
-
-    if (this.viewOptions.keyboardSupport) {
-      this.minHandleElement.on('focus', (): void => this.onPointerFocus(PointerType.Min));
-      if (this.range) {
-        this.maxHandleElement.on('focus', (): void => this.onPointerFocus(PointerType.Max));
-      }
-    }
-  }
-
-  private getOptionsInfluencingEventBindings(options: Options): boolean[] {
-    return [options.disabled, options.onlyBindHandles, options.keyboardSupport];
   }
 
   // Unbind mouse and touch events to slider handles
@@ -1152,11 +1046,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
     const pointerElement: CustomRangeHandleDirective = this.getPointerElement(pointerType);
     pointerElement.active = true;
-
-    if (this.viewOptions.keyboardSupport) {
-      pointerElement.focus();
-    }
-
     if (bindMove) {
       this.unsubscribeOnMove();
 
@@ -1225,11 +1114,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       this.sliderElementAnimateClass = true;
     }
 
-    if (!this.viewOptions.keyboardSupport) {
-      this.minHandleElement.active = false;
-      this.maxHandleElement.active = false;
-      this.currentTrackingPointer = null;
-    }
     this.dragging.active = false;
 
     this.unsubscribeOnMove();
@@ -1238,41 +1122,28 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.userChangeEnd.emit(this.getChangeContext());
   }
 
-  private onPointerFocus(pointerType: PointerType): void {
-    const pointerElement: CustomRangeHandleDirective = this.getPointerElement(pointerType);
-    pointerElement.on('blur', (): void => this.onPointerBlur(pointerElement));
-    pointerElement.active = true;
+  // // onDragStart event handler, handles dragging of the middle bar
+  // private onDragStart(
+  //   pointerType: PointerType,
+  //   event: MouseEvent,
+  //   bindMove: boolean,
+  //   bindEnd: boolean
+  // ): void {
+  //   const position: number = this.getEventPosition(event);
 
-    this.currentTrackingPointer = pointerType;
-  }
+  //   this.dragging = new Dragging();
+  //   this.dragging.active = true;
+  //   this.dragging.value = this.positionToValue(position);
+  //   this.dragging.difference = this.viewHighValue - this.viewLowValue;
+  //   this.dragging.lowLimit = this.viewOptions.rightToLeft
+  //     ? this.minHandleElement.position - position
+  //     : position - this.minHandleElement.position;
+  //   this.dragging.highLimit = this.viewOptions.rightToLeft
+  //     ? position - this.maxHandleElement.position
+  //     : this.maxHandleElement.position - position;
 
-  private onPointerBlur(pointer: CustomRangeHandleDirective): void {
-    pointer.off('blur');
-    pointer.active = false;
-  }
-
-  // onDragStart event handler, handles dragging of the middle bar
-  private onDragStart(
-    pointerType: PointerType,
-    event: MouseEvent,
-    bindMove: boolean,
-    bindEnd: boolean
-  ): void {
-    const position: number = this.getEventPosition(event);
-
-    this.dragging = new Dragging();
-    this.dragging.active = true;
-    this.dragging.value = this.positionToValue(position);
-    this.dragging.difference = this.viewHighValue - this.viewLowValue;
-    this.dragging.lowLimit = this.viewOptions.rightToLeft
-      ? this.minHandleElement.position - position
-      : position - this.minHandleElement.position;
-    this.dragging.highLimit = this.viewOptions.rightToLeft
-      ? position - this.maxHandleElement.position
-      : this.maxHandleElement.position - position;
-
-    this.onStart(pointerType, event, bindMove, bindEnd);
-  }
+  //   this.onStart(pointerType, event, bindMove, bindEnd);
+  // }
 
   /** Get min value depending on whether the newPos is outOfBounds above or below the bar and rightToLeft */
   private getMinValue(newPos: number, outOfBounds: boolean, isAbove: boolean): number {
@@ -1400,42 +1271,40 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   // Set the new value and position to the current tracking handle
   private positionTrackingHandle(newValue: number): void {
     newValue = this.applyMinMaxLimit(newValue);
-    if (this.range) {
-      if (this.viewOptions.pushRange) {
-        newValue = this.applyPushRange(newValue);
-      } else {
-        if (this.viewOptions.noSwitching) {
-          if (this.currentTrackingPointer === PointerType.Min && newValue > this.viewHighValue) {
-            newValue = this.applyMinMaxRange(this.viewHighValue);
-          } else if (this.currentTrackingPointer === PointerType.Max && newValue < this.viewLowValue) {
-            newValue = this.applyMinMaxRange(this.viewLowValue);
-          }
-        }
-        newValue = this.applyMinMaxRange(newValue);
-        /* This is to check if we need to switch the min and max handles */
+    if (this.viewOptions.pushRange) {
+      newValue = this.applyPushRange(newValue);
+    } else {
+      if (this.viewOptions.noSwitching) {
         if (this.currentTrackingPointer === PointerType.Min && newValue > this.viewHighValue) {
-          this.viewLowValue = this.viewHighValue;
-          this.applyViewChange();
-          this.updateHandles(PointerType.Min, this.maxHandleElement.position);
-          // this.updateAriaAttributes();
-          this.currentTrackingPointer = PointerType.Max;
-          this.minHandleElement.active = false;
-          this.maxHandleElement.active = true;
-          if (this.viewOptions.keyboardSupport) {
-            this.maxHandleElement.focus();
-          }
+          newValue = this.applyMinMaxRange(this.viewHighValue);
         } else if (this.currentTrackingPointer === PointerType.Max && newValue < this.viewLowValue) {
-          this.viewHighValue = this.viewLowValue;
-          this.applyViewChange();
-          this.updateHandles(PointerType.Max, this.minHandleElement.position);
-          // this.updateAriaAttributes();
-          this.currentTrackingPointer = PointerType.Min;
-          this.maxHandleElement.active = false;
-          this.minHandleElement.active = true;
-          if (this.viewOptions.keyboardSupport) {
-            this.minHandleElement.focus();
-          }
+          newValue = this.applyMinMaxRange(this.viewLowValue);
         }
+      }
+      newValue = this.applyMinMaxRange(newValue);
+      /* This is to check if we need to switch the min and max handles */
+      if (this.currentTrackingPointer === PointerType.Min && newValue > this.viewHighValue) {
+        this.viewLowValue = this.viewHighValue;
+        this.applyViewChange();
+        this.updateHandles(PointerType.Min, this.maxHandleElement.position);
+        // this.updateAriaAttributes();
+        this.currentTrackingPointer = PointerType.Max;
+        this.minHandleElement.active = false;
+        this.maxHandleElement.active = true;
+        // if (this.viewOptions.keyboardSupport) {
+        //   this.maxHandleElement.focus();
+        // }
+      } else if (this.currentTrackingPointer === PointerType.Max && newValue < this.viewLowValue) {
+        this.viewHighValue = this.viewLowValue;
+        this.applyViewChange();
+        this.updateHandles(PointerType.Max, this.minHandleElement.position);
+        // this.updateAriaAttributes();
+        this.currentTrackingPointer = PointerType.Min;
+        this.maxHandleElement.active = false;
+        this.minHandleElement.active = true;
+        // if (this.viewOptions.keyboardSupport) {
+        //   this.minHandleElement.focus();
+        // }
       }
     }
 
@@ -1560,9 +1429,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     const changeContext: ChangeContext = new ChangeContext();
     changeContext.pointerType = this.currentTrackingPointer;
     changeContext.value = +this.value;
-    if (this.range) {
-      changeContext.highValue = +this.highValue;
-    }
+    changeContext.highValue = +this.highValue;
     return changeContext;
   }
 }

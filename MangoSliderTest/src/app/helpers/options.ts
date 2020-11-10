@@ -79,13 +79,6 @@ export class Options {
       on the slider. */
   translate?: TranslateFunction = null;
 
-  /** Custom function for combining overlapping labels in range slider.
-      It takes the min and max values (already translated with translate fuction)
-      and should return how these two values should be combined.
-      If not provided, the default function will join the two values with
-      ' - ' as separator. */
-  // combineLabels?: CombineLabelsFunction = null;
-
   /** Use to display legend under ticks (thus, it needs to be used along with
      showTicks or showTicksValues). The function will be called with each tick
      value and returned content will be displayed under the tick as a legend.
@@ -128,9 +121,6 @@ export class Options {
 
   /** Set to false to disable the auto-hiding behavior of the limit labels. */
   autoHideLimitLabels?: boolean = true;
-
-  /** Set to true to disable the slider. */
-  disabled?: boolean = false;
 
   /** Throttle interval for mouse events in milliseconds.
    * This is provided to avoid a flood of events when moving the slider with mouse. */
@@ -199,16 +189,6 @@ export class Options {
     function where "min" stands for value model and "max" for valueHigh model values. */
   getPointerColor?: (value: number, pointerType: PointerType) => string = null;
 
-  /** Handles are focusable (on click or with tab) and can be modified using the following keyboard controls:
-    Left/bottom arrows: -1
-    Right/top arrows: +1
-    Page-down: -10%
-    Page-up: +10%
-    Home: minimum value
-    End: maximum value
-   */
-  keyboardSupport?: boolean = true;
-
   /** If you display the slider in an element that uses transform: scale(0.5), set the scale value to 2
     so that the slider is rendered properly and the events are handled correctly. */
   scale?: number = 1;
@@ -230,9 +210,6 @@ export class Options {
 
   /** Set to true to prevent to user from switching the min and max handles. Applies to range slider only. */
   noSwitching?: boolean = false;
-
-  /** Set to true to only bind events on slider handles. */
-  onlyBindHandles?: boolean = false;
 
   /** Set to true to show graphs right to left.
     If vertical is true it will be from top to bottom and left / right arrow functions reversed. */
@@ -268,26 +245,6 @@ export class Options {
     Values used in calculations will be rounded to this number of significant digits
     to prevent accumulating small floating-point errors. */
   precisionLimit?: number = 12;
-
-  /** Use to add a label directly to the slider for accessibility. Adds the aria-label attribute. */
-  ariaLabel?: string = null;
-
-  /** Use instead of ariaLabel to reference the id of an element which will be used to label the slider.
-    Adds the aria-labelledby attribute. */
-  ariaLabelledBy?: string = null;
-
-  /** Use to add a label directly to the slider range for accessibility. Adds the aria-label attribute. */
-  ariaLabelHigh?: string = null;
-
-  /** Use instead of ariaLabelHigh to reference the id of an element which will be used to label the slider range.
-    Adds the aria-labelledby attribute. */
-  ariaLabelledByHigh?: string = null;
-
-  /** Use to increase rendering performance. If the value is not provided, the slider calculates the with/height of the handle */
-  // handleDimension?: number = null;
-
-  /** Use to increase rendering performance. If the value is not provided, the slider calculates the with/height of the bar */
-  // barDimension?: number = null;
 
   /** Enable/disable CSS animations */
   animate?: boolean = true;

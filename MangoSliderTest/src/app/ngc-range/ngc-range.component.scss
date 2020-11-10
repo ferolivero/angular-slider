@@ -30,14 +30,6 @@
       .ngx-slider-selection {
         background: $barDisabledFillColor;
       }
-
-      //   .ngx-slider-tick {
-      //     cursor: not-allowed;
-
-      //     &.ngx-slider-selected {
-      //       background: $barDisabledFillColor;
-      //     }
-      //   }
     }
 
     .ngx-slider-span {
@@ -138,135 +130,6 @@
       }
     }
 
-    // .ngx-slider-ticks {
-    //   box-sizing: border-box;
-    //   width: 100%;
-    //   height: 0;
-    //   position: absolute;
-    //   left: 0;
-    //   top: -($ticksHeight - $barDimension) / 2;
-    //   margin: 0;
-    //   z-index: 1;
-    //   list-style: none;
-    // }
-
-    // .ngx-slider-ticks-values-under {
-    //   .ngx-slider-tick-value {
-    //     top: auto;
-    //     bottom: $ticksValuePosition - 2;
-    //   }
-    // }
-
-    // .ngx-slider-tick {
-    //   text-align: center;
-    //   cursor: pointer;
-    //   width: $ticksWidth;
-    //   height: $ticksHeight;
-    //   background: $ticksColor;
-    //   border-radius: 50%;
-    //   position: absolute;
-    //   top: 0;
-    //   left: 0;
-    //   margin-left: $handleSize / 2 - $ticksWidth / 2; // for centering
-
-    //   &.ngx-slider-selected {
-    //     background: $selectedTicksColor;
-    //   }
-    // }
-
-    // .ngx-slider-tick-value {
-    //   position: absolute;
-    //   top: $ticksValuePosition;
-    //   transform: translate(-50%, 0);
-    // }
-
-    // .ngx-slider-tick-legend {
-    //   position: absolute;
-    //   top: $ticksLegendPosition;
-    //   transform: translate(-50%, 0);
-    //   max-width: $tickLegendMaxWidth;
-    //   white-space: normal;
-    // }
-
-    // &.vertical {
-    //   position: relative;
-    //   width: $barDimension;
-    //   height: 100%;
-    //   margin: 0 $sliderVerticalMargin;
-    //   padding: 0;
-    //   vertical-align: baseline;
-    //   touch-action: pan-x;
-
-    //   .ngx-slider-base {
-    //     width: 100%;
-    //     height: 100%;
-    //     padding: 0;
-    //   }
-
-    //   .ngx-slider-bar-wrapper {
-    //     top: auto;
-    //     left: 0;
-    //     margin: 0 0 0 (-$handleSize / 2);
-    //     padding: 0 0 0 $handleSize / 2;
-    //     height: 100%;
-    //     width: $handleSize;
-    //   }
-
-    //   .ngx-slider-bar {
-    //     bottom: 0;
-    //     left: auto;
-    //     width: $barDimension;
-    //     height: 100%;
-    //   }
-
-    //   .ngx-slider-pointer {
-    //     left: -$handleSize / 2 + $barDimension / 2 !important;
-    //     top: auto;
-    //     bottom: 0;
-    //   }
-
-    //   .ngx-slider-bubble {
-    //     left: $handleSize / 2 !important;
-    //     bottom: 0;
-    //   }
-
-    //   .ngx-slider-ticks {
-    //     height: 100%;
-    //     width: 0;
-    //     left: -($ticksHeight - $barDimension) / 2;
-    //     top: 0;
-    //     z-index: 1;
-    //   }
-
-    //   .ngx-slider-tick {
-    //     vertical-align: middle;
-    //     margin-left: auto;
-    //     margin-top: $handleSize / 2 - $ticksWidth / 2; // for centering
-    //   }
-
-    //   .ngx-slider-tick-value {
-    //     left: $ticksValuePositionOnVertical;
-    //     top: auto;
-    //     transform: translate(0, -28%);
-    //   }
-
-    //   .ngx-slider-tick-legend {
-    //     top: auto;
-    //     right: $ticksLegendPosition;
-    //     transform: translate(0, -28%);
-    //     max-width: none;
-    //     white-space: nowrap;
-    //   }
-
-    //   .ngx-slider-ticks-values-under {
-    //     .ngx-slider-tick-value {
-    //       bottom: auto;
-    //       left: auto;
-    //       right: $ticksValuePositionOnVertical;
-    //     }
-    //   }
-    // }
-
     * {
       transition: none;
     }
@@ -295,10 +158,6 @@
           transition: opacity linear $animationDuration;
         }
       }
-
-      //   .ngx-slider-tick {
-      //     transition: background-color linear $animationDuration;
-      //   }
     }
   }
 }

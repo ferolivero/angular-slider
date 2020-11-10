@@ -60,11 +60,7 @@ export class CustomRangeElementDirective {
     }
 
     this._position = pos;
-    // if (this._vertical) {
-    // this.bottom = Math.round(pos) + 'px';
-    // } else {
     this.left = Math.round(pos) + 'px';
-    // }
   }
 
   // Calculate element's width/height depending on whether slider is horizontal or vertical
