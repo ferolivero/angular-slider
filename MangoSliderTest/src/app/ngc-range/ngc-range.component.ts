@@ -21,13 +21,16 @@ import { ControlValueAccessor } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, tap, throttleTime } from 'rxjs/operators';
 import { CustomRangeElementDirective } from '../directives/custom-range-element.directive';
-import { ValoresHelper } from '../helpers/valores-helper';
+import { EventListenerHelper, MathHelper, ValoresHelper } from '../helpers';
 import {
   Dragging,
   EventListener,
+  InputModelChange,
   LabelType,
+  ModelChange,
   ModelValues,
   Options,
+  OutputModelChange,
   PointerType,
   PositionToValueFunction,
   SliderChange,
@@ -36,32 +39,6 @@ import {
 import { CustomStepDefinition } from '../models/custom-step-definition';
 import { CustomRangeHandleDirective } from './../directives/custom-range-handle.directive';
 import { CustomRangeLabelDirective } from './../directives/custom-range-label.directive';
-import { EventListenerHelper } from './../helpers/event-listener-helper';
-import { MathHelper } from './../helpers/math-helper';
-
-class ModelChange extends ModelValues {
-  // Flag used to by-pass distinctUntilChanged() filter on input values
-  // (sometimes there is a need to pass values through even though the model values have not changed)
-  forceChange: boolean;
-
-  public static compare(x?: ModelChange, y?: ModelChange): boolean {
-    if (ValoresHelper.isNullOrUndefined(x) && ValoresHelper.isNullOrUndefined(y)) {
-      return false;
-    }
-    if (ValoresHelper.isNullOrUndefined(x) !== ValoresHelper.isNullOrUndefined(y)) {
-      return false;
-    }
-    return x.value === y.value && x.highValue === y.highValue && x.forceChange === y.forceChange;
-  }
-}
-
-class InputModelChange extends ModelChange {
-  internalChange: boolean;
-}
-
-class OutputModelChange extends ModelChange {
-  userEventInitiated: boolean;
-}
 
 @Component({
   selector: 'ngc-range',
@@ -103,7 +80,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   @Input() min: number;
   @Input() max: number;
-  @Input() type: string = 'normal';
 
   // Set to true if init method already executed
   private initHasRun: boolean = false;
@@ -702,8 +678,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.updateHighHandle(this.valueToPosition(this.viewHighValue));
 
     this.updateSelectionBar();
-
-    // this.updateCombinedLabel();
   }
 
   // Calculate dimensions that are dependent on view port size
@@ -743,19 +717,21 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   private updateFloorLabel(): void {
     this.floorLabelElement.setValue(this.getDisplayValue(this.viewOptions.floor, LabelType.Floor));
     this.floorLabelElement.calculateDimension();
-    const position: number = this.viewOptions.rightToLeft
-      ? this.fullBarElement.dimension - this.floorLabelElement.dimension
-      : 0;
-    this.floorLabelElement.setPosition(position);
+    // const position: number = this.viewOptions.rightToLeft
+    //   ? this.fullBarElement.dimension - this.floorLabelElement.dimension
+    //   : 0;
+
+    this.floorLabelElement.setPosition(0);
   }
 
   // Update position of the ceiling label
   private updateCeilLabel(): void {
     this.ceilLabelElement.setValue(this.getDisplayValue(this.viewOptions.ceil, LabelType.Ceil));
     this.ceilLabelElement.calculateDimension();
-    const position: number = this.viewOptions.rightToLeft
-      ? 0
-      : this.fullBarElement.dimension - this.ceilLabelElement.dimension;
+    // const position: number = this.viewOptions.rightToLeft
+    //   ? 0
+    //   : this.fullBarElement.dimension - this.ceilLabelElement.dimension;
+    const position = this.fullBarElement.dimension - this.ceilLabelElement.dimension;
     this.ceilLabelElement.setPosition(position);
   }
 
@@ -783,10 +759,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       return nearHandlePos;
     }
 
-    if (
-      (this.viewOptions.rightToLeft && labelType === PointerType.Min) ||
-      (!this.viewOptions.rightToLeft && labelType === PointerType.Max)
-    ) {
+    if (labelType === PointerType.Max) {
       return Math.min(nearHandlePos, endOfBarPos);
     } else {
       return Math.min(Math.max(nearHandlePos, 0), endOfBarPos);
@@ -835,9 +808,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   private updateSelectionBar(): void {
     let position: number = 0;
     let dimension: number = 0;
-    const positionForRange: number = this.viewOptions.rightToLeft
-      ? this.maxHandleElement.position + this.handleHalfDimension
-      : this.minHandleElement.position + this.handleHalfDimension;
+    const positionForRange: number = this.minHandleElement.position + this.handleHalfDimension;
 
     dimension = Math.abs(this.maxHandleElement.position - this.minHandleElement.position);
     position = positionForRange;
@@ -903,18 +874,18 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     if (ValoresHelper.isNullOrUndefined(percent)) {
       percent = 0;
     }
-    if (this.viewOptions.rightToLeft) {
-      percent = 1 - percent;
-    }
+    // if (this.viewOptions.rightToLeft) {
+    //   percent = 1 - percent;
+    // }
     return percent * this.maxHandlePosition;
   }
 
   // Translate position to model value
   private positionToValue(position: number): number {
     let percent: number = position / this.maxHandlePosition;
-    if (this.viewOptions.rightToLeft) {
-      percent = 1 - percent;
-    }
+    // if (this.viewOptions.rightToLeft) {
+    //   percent = 1 - percent;
+    // }
     let fn: PositionToValueFunction = ValoresHelper.linearPositionToValue;
     if (!ValoresHelper.isNullOrUndefined(this.viewOptions.customPositionToValue)) {
       fn = this.viewOptions.customPositionToValue;
@@ -945,12 +916,12 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       return PointerType.Min;
     } else if (distanceMin > distanceMax) {
       return PointerType.Max;
-    } else if (!this.viewOptions.rightToLeft) {
-      // if event is at the same distance from min/max then if it's at left of minH, we return minH else maxH
-      return position < this.minHandleElement.position ? PointerType.Min : PointerType.Max;
+      // } else if (!this.viewOptions.rightToLeft) {
+      //   // if event is at the same distance from min/max then if it's at left of minH, we return minH else maxH
     }
+    return position < this.minHandleElement.position ? PointerType.Min : PointerType.Max;
     // reverse in rtl
-    return position > this.minHandleElement.position ? PointerType.Min : PointerType.Max;
+    // return position > this.minHandleElement.position ? PointerType.Min : PointerType.Max;
   }
 
   // Bind mouse and touch events to slider handles
@@ -1089,40 +1060,32 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   /** Get min value depending on whether the newPos is outOfBounds above or below the bar and rightToLeft */
   private getMinValue(newPos: number, outOfBounds: boolean, isAbove: boolean): number {
-    const isRTL: boolean = this.viewOptions.rightToLeft;
     let value: number = null;
 
     if (outOfBounds) {
       if (isAbove) {
-        value = isRTL ? this.viewOptions.floor : this.viewOptions.ceil - this.dragging.difference;
+        value = this.viewOptions.ceil - this.dragging.difference;
       } else {
-        value = isRTL ? this.viewOptions.ceil - this.dragging.difference : this.viewOptions.floor;
+        value = this.viewOptions.floor;
       }
     } else {
-      value = isRTL
-        ? this.positionToValue(newPos + this.dragging.lowLimit)
-        : this.positionToValue(newPos - this.dragging.lowLimit);
+      value = this.positionToValue(newPos - this.dragging.lowLimit);
     }
     return this.roundStep(value);
   }
 
   /** Get max value depending on whether the newPos is outOfBounds above or below the bar and rightToLeft */
   private getMaxValue(newPos: number, outOfBounds: boolean, isAbove: boolean): number {
-    const isRTL: boolean = this.viewOptions.rightToLeft;
     let value: number = null;
 
     if (outOfBounds) {
       if (isAbove) {
-        value = isRTL ? this.viewOptions.floor + this.dragging.difference : this.viewOptions.ceil;
+        value = this.viewOptions.ceil;
       } else {
-        value = isRTL ? this.viewOptions.ceil : this.viewOptions.floor + this.dragging.difference;
+        value = this.viewOptions.floor + this.dragging.difference;
       }
     } else {
-      if (isRTL) {
-        value = this.positionToValue(newPos + this.dragging.lowLimit) + this.dragging.difference;
-      } else {
-        value = this.positionToValue(newPos - this.dragging.lowLimit) + this.dragging.difference;
-      }
+      value = this.positionToValue(newPos - this.dragging.lowLimit) + this.dragging.difference;
     }
 
     return this.roundStep(value);
@@ -1143,17 +1106,10 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       floorLimit: number,
       floorHandleElement: CustomRangeHandleDirective,
       ceilHandleElement: CustomRangeHandleDirective;
-    if (this.viewOptions.rightToLeft) {
-      ceilLimit = this.dragging.lowLimit;
-      floorLimit = this.dragging.highLimit;
-      floorHandleElement = this.maxHandleElement;
-      ceilHandleElement = this.minHandleElement;
-    } else {
-      ceilLimit = this.dragging.highLimit;
-      floorLimit = this.dragging.lowLimit;
-      floorHandleElement = this.minHandleElement;
-      ceilHandleElement = this.maxHandleElement;
-    }
+    ceilLimit = this.dragging.highLimit;
+    floorLimit = this.dragging.lowLimit;
+    floorHandleElement = this.minHandleElement;
+    ceilHandleElement = this.maxHandleElement;
 
     const isUnderFloorLimit: boolean = newPos <= floorLimit;
     const isOverCeilLimit: boolean = newPos >= this.maxHandlePosition - ceilLimit;
@@ -1245,7 +1201,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         this.applyViewChange();
       }
       this.updateHandles(this.currentTrackingPointer, this.valueToPosition(newValue));
-      // this.updateAriaAttributes();
     }
   }
 

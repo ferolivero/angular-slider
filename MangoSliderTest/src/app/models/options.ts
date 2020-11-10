@@ -4,8 +4,8 @@ import {
   PositionToValueFunction,
   TranslateFunction,
   ValueToPositionFunction
-} from '../models';
-import { CustomStepDefinition } from '../models/custom-step-definition';
+} from '.';
+import { CustomStepDefinition } from './custom-step-definition';
 
 /** Slider options */
 export class Options {
@@ -184,16 +184,6 @@ export class Options {
   /** Set to true to show graphs right to left.
     If vertical is true it will be from top to bottom and left / right arrow functions reversed. */
   rightToLeft?: boolean = false;
-
-  /** Set to true to reverse keyboard navigation:
-    Right/top arrows: -1
-    Left/bottom arrows: +1
-    Page-up: -10%
-    Page-down: +10%
-    End: minimum value
-    Home: maximum value
-   */
-  reversedControls?: boolean = false;
 
   /** Set to true to keep the slider labels inside the slider bounds. */
   boundPointerLabels?: boolean = true;

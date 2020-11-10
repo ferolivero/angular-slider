@@ -8,7 +8,7 @@ export {
   ValueToPositionFunction
 } from './functions';
 export { LabelType } from './label-type';
-export { ModelValues } from './model-values';
+export { InputModelChange, ModelChange, ModelValues, OutputModelChange } from './model-values';
 export { Options } from './options';
 export { PointerType } from './pointer-type';
 export { SliderChange } from './slider-change';
