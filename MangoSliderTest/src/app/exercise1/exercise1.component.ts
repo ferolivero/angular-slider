@@ -22,8 +22,7 @@ export class Exercise1Component implements OnInit {
   max: number = 8;
   options: Options = {
     floor: 0,
-    ceil: 10,
-    draggableRange: true
+    ceil: 10
   };
 
   // Categories for drop down list

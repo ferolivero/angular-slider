@@ -106,14 +106,6 @@ export class Options {
   /** Set to true to bind the index of the selected item to value model and valueHigh model. */
   bindIndexForStepsArray?: boolean = false;
 
-  /** When set to true and using a range slider, the range can be dragged by the selection bar.
-    Applies to range slider only. */
-  draggableRange?: boolean = false;
-
-  /** Same as draggableRange but the slider range can't be changed.
-    Applies to range slider only. */
-  draggableRangeOnly?: boolean = false;
-
   /** Set to true to always show the selection bar before the slider handle. */
   showSelectionBar?: boolean = false;
 

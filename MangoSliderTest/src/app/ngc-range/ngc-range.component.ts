@@ -162,7 +162,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   // Internal variable to keep track of the focus element
   private currentFocusPointer: PointerType = null;
   // Current touch id of touch event being handled
-  private touchId: number = null;
+  // private touchId: number = null;
   // Values recorded when first dragging the bar
   private dragging: Dragging = new Dragging();
 
@@ -514,18 +514,10 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       }
 
       if (!ValoresHelper.isNullOrUndefined(this.onChangeCallback)) {
-        if (this.range) {
-          this.onChangeCallback([modelChange.value, modelChange.highValue]);
-        } else {
-          this.onChangeCallback(modelChange.value);
-        }
+        this.onChangeCallback([modelChange.value, modelChange.highValue]);
       }
       if (!ValoresHelper.isNullOrUndefined(this.onTouchedCallback)) {
-        if (this.range) {
-          this.onTouchedCallback([modelChange.value, modelChange.highValue]);
-        } else {
-          this.onTouchedCallback(modelChange.value);
-        }
+        this.onTouchedCallback([modelChange.value, modelChange.highValue]);
       }
     };
 
@@ -679,24 +671,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.viewOptions = new Options();
     Object.assign(this.viewOptions, this.options);
 
-    this.viewOptions.draggableRange = this.range && this.viewOptions.draggableRange;
-    this.viewOptions.draggableRangeOnly = this.range && this.viewOptions.draggableRangeOnly;
-    if (this.viewOptions.draggableRangeOnly) {
-      this.viewOptions.draggableRange = true;
-    }
-
-    this.viewOptions.showTicks =
-      this.viewOptions.showTicks ||
-      this.viewOptions.showTicksValues ||
-      !ValoresHelper.isNullOrUndefined(this.viewOptions.ticksArray);
-    if (
-      this.viewOptions.showTicks &&
-      (!ValoresHelper.isNullOrUndefined(this.viewOptions.tickStep) ||
-        !ValoresHelper.isNullOrUndefined(this.viewOptions.ticksArray))
-    ) {
-      // this.intermediateTicks = true;
-    }
-
     this.viewOptions.showSelectionBar =
       this.viewOptions.showSelectionBar ||
       this.viewOptions.showSelectionBarEnd ||
@@ -800,7 +774,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.updateScale();
 
     this.fullBarTransparentClass = this.range && this.viewOptions.showOuterSelectionBars;
-    this.selectionBarDraggableClass = this.viewOptions.draggableRange && !this.viewOptions.onlyBindHandles;
+    this.selectionBarDraggableClass = false;
 
     // Changing animate class may interfere with slider reset/initialisation, so we should set it separately,
     // after all is properly set up
@@ -1155,10 +1129,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   // Get the handle closest to an event
   private getNearestHandle(event: MouseEvent): PointerType {
-    if (!this.range) {
-      return PointerType.Min;
-    }
-
     const position: number = this.getEventPosition(event);
     const distanceMin: number = Math.abs(position - this.minHandleElement.position);
     const distanceMax: number = Math.abs(position - this.maxHandleElement.position);
@@ -1177,37 +1147,21 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   // Bind mouse and touch events to slider handles
   private bindEvents(): void {
-    const draggableRange: boolean = this.viewOptions.draggableRange;
+    this.selectionBarElement.on('mousedown', (event: MouseEvent): void =>
+      this.onStart(null, event, true, true, true)
+    );
 
-    if (!this.viewOptions.onlyBindHandles) {
-      this.selectionBarElement.on('mousedown', (event: MouseEvent): void =>
-        this.onBarStart(null, draggableRange, event, true, true, true)
-      );
-    }
+    this.minHandleElement.on('mousedown', (event: MouseEvent): void =>
+      this.onStart(PointerType.Min, event, true, true)
+    );
 
-    if (this.viewOptions.draggableRangeOnly) {
-      this.minHandleElement.on('mousedown', (event: MouseEvent): void =>
-        this.onBarStart(PointerType.Min, draggableRange, event, true, true)
-      );
-      this.maxHandleElement.on('mousedown', (event: MouseEvent): void =>
-        this.onBarStart(PointerType.Max, draggableRange, event, true, true)
-      );
-    } else {
-      this.minHandleElement.on('mousedown', (event: MouseEvent): void =>
-        this.onStart(PointerType.Min, event, true, true)
-      );
+    this.maxHandleElement.on('mousedown', (event: MouseEvent): void =>
+      this.onStart(PointerType.Max, event, true, true)
+    );
 
-      if (this.range) {
-        this.maxHandleElement.on('mousedown', (event: MouseEvent): void =>
-          this.onStart(PointerType.Max, event, true, true)
-        );
-      }
-      if (!this.viewOptions.onlyBindHandles) {
-        this.fullBarElement.on('mousedown', (event: MouseEvent): void =>
-          this.onStart(null, event, true, true, true)
-        );
-      }
-    }
+    this.fullBarElement.on('mousedown', (event: MouseEvent): void =>
+      this.onStart(null, event, true, true, true)
+    );
 
     if (this.viewOptions.keyboardSupport) {
       this.minHandleElement.on('focus', (): void => this.onPointerFocus(PointerType.Min));
@@ -1218,14 +1172,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   }
 
   private getOptionsInfluencingEventBindings(options: Options): boolean[] {
-    return [
-      options.disabled,
-      // options.readOnly,
-      options.draggableRange,
-      options.draggableRangeOnly,
-      options.onlyBindHandles,
-      options.keyboardSupport
-    ];
+    return [options.disabled, options.onlyBindHandles, options.keyboardSupport];
   }
 
   // Unbind mouse and touch events to slider handles
@@ -1237,22 +1184,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       if (!ValoresHelper.isNullOrUndefined(element)) {
         element.off();
       }
-    }
-  }
-
-  private onBarStart(
-    pointerType: PointerType,
-    draggableRange: boolean,
-    event: MouseEvent,
-    bindMove: boolean,
-    bindEnd: boolean,
-    simulateImmediateMove?: boolean,
-    simulateImmediateEnd?: boolean
-  ): void {
-    if (draggableRange) {
-      this.onDragStart(pointerType, event, bindMove, bindEnd);
-    } else {
-      this.onStart(pointerType, event, bindMove, bindEnd, simulateImmediateMove, simulateImmediateEnd);
     }
   }
 
@@ -1319,7 +1250,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     // start, move, end sequence, and sometimes, they don't - they only invoke mousedown
     // As a workaround, we simulate the first move event and the end event if it's necessary
     if (simulateImmediateMove) {
-      this.onMove(event, true);
+      this.onMove(event);
     }
 
     if (simulateImmediateEnd) {
@@ -1328,20 +1259,16 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   }
 
   // onMove event handler
-  private onMove(event: MouseEvent, fromTick?: boolean): void {
-    let touchForThisSlider: Touch = null;
-    if (this.viewOptions.animate && !this.viewOptions.animateOnMove) {
-      if (this.moving) {
-        this.sliderElementAnimateClass = false;
-      }
+  private onMove(event: MouseEvent): void {
+    if (this.viewOptions.animate && !this.viewOptions.animateOnMove && this.moving) {
+      this.sliderElementAnimateClass = false;
     }
 
     this.moving = true;
-
     const newPos: number = this.getEventPosition(event);
     let newValue: number;
-    const ceilValue: number = this.viewOptions.rightToLeft ? this.viewOptions.floor : this.viewOptions.ceil;
-    const floorValue: number = this.viewOptions.rightToLeft ? this.viewOptions.ceil : this.viewOptions.floor;
+    const ceilValue: number = this.viewOptions.ceil;
+    const floorValue: number = this.viewOptions.floor;
 
     if (newPos <= 0) {
       newValue = floorValue;
@@ -1349,11 +1276,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       newValue = ceilValue;
     } else {
       newValue = this.positionToValue(newPos);
-      if (fromTick && !ValoresHelper.isNullOrUndefined(this.viewOptions.tickStep)) {
-        newValue = this.roundStep(newValue, this.viewOptions.tickStep);
-      } else {
-        newValue = this.roundStep(newValue);
-      }
+      newValue = this.roundStep(newValue);
     }
     this.positionTrackingHandle(newValue);
   }
@@ -1363,8 +1286,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     if (this.viewOptions.animate) {
       this.sliderElementAnimateClass = true;
     }
-
-    this.touchId = null;
 
     if (!this.viewOptions.keyboardSupport) {
       this.minHandleElement.active = false;
@@ -1392,10 +1313,10 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   private onPointerBlur(pointer: CustomRangeHandleDirective): void {
     pointer.off('blur');
     pointer.active = false;
-    if (ValoresHelper.isNullOrUndefined(this.touchId)) {
-      this.currentTrackingPointer = null;
-      this.currentFocusPointer = null;
-    }
+    // if (ValoresHelper.isNullOrUndefined(this.touchId)) {
+    //   this.currentTrackingPointer = null;
+    //   this.currentFocusPointer = null;
+    // }
   }
 
   // onDragStart event handler, handles dragging of the middle bar
