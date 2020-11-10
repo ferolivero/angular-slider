@@ -1,0 +1,39 @@
+<span customRangeElement #fullBar [class.ngx-slider-transparent]="fullBarTransparentClass"
+    class="ngx-slider-span ngx-slider-bar-wrapper ngx-slider-full-bar">
+    <span class="ngx-slider-span ngx-slider-bar"></span>
+</span>
+
+<span customRangeElement #selectionBar [class.ngx-slider-draggable]="selectionBarDraggableClass"
+    class="ngx-slider-span ngx-slider-bar-wrapper ngx-slider-selection-bar">
+    <span class="ngx-slider-span ngx-slider-bar ngx-slider-selection" [ngStyle]="barStyle"></span>
+</span>
+
+<span customRangeHandle #minHandle class="ngx-slider-span ngx-slider-pointer ngx-slider-pointer-min"
+    [ngStyle]=minPointerStyle></span>
+<!-- // 5 High slider handle -->
+<span customRangeHandle #maxHandle [style.display]="range ? 'inherit' : 'none'"
+    class="ngx-slider-span ngx-slider-pointer ngx-slider-pointer-max" [ngStyle]=maxPointerStyle></span>
+
+<!-- // 6 Floor label -->
+<span customRangeLabel #floorLabel class="ngx-slider-span ngx-slider-bubble ngx-slider-limit ngx-slider-floor"></span>
+<!-- // 7 Ceiling label -->
+<span customRangeLabel #ceilLabel class="ngx-slider-span ngx-slider-bubble ngx-slider-limit ngx-slider-ceil"></span>
+
+<!-- // 8 Label above the low slider handle -->
+<span customRangeLabel #minHandleLabel class="ngx-slider-span ngx-slider-bubble ngx-slider-model-value"></span>
+<!-- // 9 Label above the high slider handle -->
+<span customRangeLabel #maxHandleLabel class="ngx-slider-span ngx-slider-bubble ngx-slider-model-high"></span>
+
+<span customRangeLabel #combinedLabel class="ngx-slider-span ngx-slider-bubble ngx-slider-combined"></span>
+<!-- // 11 The ticks -->
+<!-- <span customRangeElement #ticksElement [hidden]="!showTicks" class="ngx-slider-ticks"> -->
+<!-- <span *ngFor="let t of ticks" class="ngx-slider-tick" [ngClass]="{'ngx-slider-selected': t.selected}"
+        [ngStyle]="t.style">
+        <ngx-slider-tooltip-wrapper [template]="tooltipTemplate" [tooltip]="t.tooltip" [placement]="t.tooltipPlacement">
+        </ngx-slider-tooltip-wrapper>
+        <ngx-slider-tooltip-wrapper *ngIf="t.value != null" class="ngx-slider-span ngx-slider-tick-value"
+            [template]="tooltipTemplate" [tooltip]="t.valueTooltip" [placement]="t.valueTooltipPlacement"
+            [content]="t.value"></ngx-slider-tooltip-wrapper>
+        <span *ngIf="t.legend != null" class="ngx-slider-span ngx-slider-tick-legend" [innerHTML]="t.legend"></span>
+    </span> -->
+<!-- </span> -->

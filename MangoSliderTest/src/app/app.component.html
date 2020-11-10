@@ -1,0 +1,19 @@
+<nav class="navbar navbar-expand navbar-light bg-light">
+    <a class="navbar-brand">{{titulo}}</a>
+    <ul class="navbar-nav">
+        <li class="nav-item">
+            <a class="nav-link" [routerLink]="['/welcome']" routerLinkActive="active">Inicio</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" [routerLink]="['/exercise1']" routerLinkActive="active"
+                [routerLinkActiveOptions]="{ exact : true}">Ejercicio 1</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" [routerLink]="['/exercise2']" routerLinkActive="active">Ejercicio 2</a>
+        </li>
+    </ul>
+</nav>
+
+<div class="container">
+    <router-outlet></router-outlet>
+</div>
