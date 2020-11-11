@@ -15,23 +15,6 @@
       margin-bottom: $withLegendMargin;
     }
 
-    &[disabled] {
-      cursor: not-allowed;
-
-      .ngx-slider-pointer {
-        cursor: not-allowed;
-        background-color: $handleDisabledColor;
-      }
-
-      .ngx-slider-draggable {
-        cursor: not-allowed;
-      }
-
-      .ngx-slider-selection {
-        background: $barDisabledFillColor;
-      }
-    }
-
     .ngx-slider-span {
       white-space: nowrap;
       position: absolute;
@@ -69,14 +52,6 @@
 
     .ngx-slider-bar-wrapper.ngx-slider-transparent .ngx-slider-bar {
       background: transparent;
-    }
-
-    .ngx-slider-bar-wrapper.ngx-slider-left-out-selection .ngx-slider-bar {
-      background: $barLeftOutSelectionColor;
-    }
-
-    .ngx-slider-bar-wrapper.ngx-slider-right-out-selection .ngx-slider-bar {
-      background: $barRightOutSelectionColor;
     }
 
     .ngx-slider-selection {
@@ -127,32 +102,6 @@
 
       &.ngx-slider-limit {
         color: $limitLabelTextColor;
-      }
-    }
-
-    * {
-      transition: none;
-    }
-
-    &.animate {
-      .ngx-slider-bar-wrapper {
-        transition: all linear $animationDuration;
-      }
-
-      .ngx-slider-selection {
-        transition: background-color linear $animationDuration;
-      }
-
-      .ngx-slider-pointer {
-        transition: all linear $animationDuration;
-      }
-
-      .ngx-slider-bubble {
-        transition: all linear $animationDuration;
-
-        &.ngx-slider-limit {
-          transition: opacity linear $animationDuration;
-        }
       }
     }
   }

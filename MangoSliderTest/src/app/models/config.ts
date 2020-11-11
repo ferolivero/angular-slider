@@ -16,22 +16,6 @@ export class Config {
     Not applicable when using stepsArray. */
   nodo?: number = 1;
 
-  /** The minimum range authorized on the slider.
-    Applies to range slider only.
-    When using stepsArray, expressed as index into stepsArray. */
-  minRange?: number = null;
-
-  /** The maximum range authorized on the slider.
-    Applies to range slider only.
-    When using stepsArray, expressed as index into stepsArray. */
-  maxRange?: number = null;
-
-  /** Set to true to have a push behavior. When the min handle goes above the max,
-    the max is moved as well (and vice-versa). The range between min and max is
-    defined by the step option (defaults to 1) and can also be overriden by
-    the minRange option. Applies to range slider only. */
-  // pushRange?: boolean = false;
-
   /** The minimum value authorized on the slider.
     When using stepsArray, expressed as index into stepsArray. */
   minLimit?: number = null;
@@ -71,7 +55,7 @@ export class Config {
   showOuterSelectionBars?: boolean = false;
 
   /** Set to true to hide min / max labels  */
-  hideLimitLabels?: boolean = false;
+  // hideLimitLabels?: boolean = true;
 
   /** Throttle interval for mouse events in milliseconds.
    * This is provided to avoid a flood of events when moving the slider with mouse. */
@@ -150,5 +134,5 @@ export class Config {
   precisionLimit?: number = 12;
 
   /** Enable/disable CSS animations */
-  animate?: boolean = true;
+  // animate?: boolean = false;
 }

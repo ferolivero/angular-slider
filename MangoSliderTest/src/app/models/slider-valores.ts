@@ -1,14 +1,14 @@
-import { ValoresHelper } from '../helpers/valores-helper';
+import { UtilsHelper } from '../helpers';
 
 export class SlideValores {
   valor: number;
   valorSuperior: number;
 
   public static compare(x?: SlideValores, y?: SlideValores): boolean {
-    if (ValoresHelper.isNullOrUndefined(x) && ValoresHelper.isNullOrUndefined(y)) {
+    if (UtilsHelper.esIndefinidoONulo(x) && UtilsHelper.esIndefinidoONulo(y)) {
       return false;
     }
-    if (ValoresHelper.isNullOrUndefined(x) !== ValoresHelper.isNullOrUndefined(y)) {
+    if (UtilsHelper.esIndefinidoONulo(x) !== UtilsHelper.esIndefinidoONulo(y)) {
       return false;
     }
     return x.valor === y.valor && x.valorSuperior === y.valorSuperior;
@@ -21,10 +21,10 @@ export class ModelChange extends SlideValores {
   forceChange: boolean;
 
   public static compare(x?: ModelChange, y?: ModelChange): boolean {
-    if (ValoresHelper.isNullOrUndefined(x) && ValoresHelper.isNullOrUndefined(y)) {
+    if (UtilsHelper.esIndefinidoONulo(x) && UtilsHelper.esIndefinidoONulo(y)) {
       return false;
     }
-    if (ValoresHelper.isNullOrUndefined(x) !== ValoresHelper.isNullOrUndefined(y)) {
+    if (UtilsHelper.esIndefinidoONulo(x) !== UtilsHelper.esIndefinidoONulo(y)) {
       return false;
     }
     return x.valor === y.valor && x.valorSuperior === y.valorSuperior && x.forceChange === y.forceChange;

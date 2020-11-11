@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Directive, ElementRef, HostBinding, Renderer2 } from '@angular/core';
-import { EventListenerHelper } from '../helpers/event-listener-helper';
-import { ValoresHelper } from '../helpers/valores-helper';
+import { UtilsHelper } from '../helpers';
+import { EventosHelper } from '../helpers/event-listener-helper';
 import { EventListener } from '../models';
 
 @Directive({ selector: '[customRangeElement]' })
@@ -10,7 +10,7 @@ export class CustomRangeElementDirective {
     protected renderer: Renderer2,
     protected changeDetectionRef: ChangeDetectorRef
   ) {
-    this.eventListenerHelper = new EventListenerHelper(this.renderer);
+    this.eventListenerHelper = new EventosHelper(this.renderer);
   }
 
   private _position: number = 0;
@@ -46,7 +46,7 @@ export class CustomRangeElementDirective {
   @HostBinding('style.width')
   width: string = '';
 
-  private eventListenerHelper: EventListenerHelper;
+  private eventListenerHelper: EventosHelper;
   private eventListeners: EventListener[] = [];
 
   setScale(scale: number): void {
@@ -96,7 +96,7 @@ export class CustomRangeElementDirective {
   off(eventName?: string): void {
     let listenersToKeep: EventListener[];
     let listenersToRemove: EventListener[];
-    if (!ValoresHelper.isNullOrUndefined(eventName)) {
+    if (!UtilsHelper.esIndefinidoONulo(eventName)) {
       listenersToKeep = this.eventListeners.filter(
         (event: EventListener) => event.nombreEvento !== eventName
       );
@@ -116,6 +116,6 @@ export class CustomRangeElementDirective {
   }
 
   private isRefDestroyed(): boolean {
-    return ValoresHelper.isNullOrUndefined(this.changeDetectionRef) || this.changeDetectionRef['destroyed'];
+    return UtilsHelper.esIndefinidoONulo(this.changeDetectionRef) || this.changeDetectionRef['destroyed'];
   }
 }

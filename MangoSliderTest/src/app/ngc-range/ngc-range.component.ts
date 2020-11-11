@@ -21,7 +21,7 @@ import { ControlValueAccessor } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, tap, throttleTime } from 'rxjs/operators';
 import { CustomRangeElementDirective } from '../directives/custom-range-element.directive';
-import { EventListenerHelper, MathHelper, ValoresHelper } from '../helpers';
+import { EventosHelper, UtilsHelper } from '../helpers';
 import {
   Config,
   Deslizable,
@@ -143,8 +143,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   @ContentChild('tooltipTemplate')
   public tooltipTemplate: TemplateRef<any>;
 
-  @HostBinding('class.animate')
-  public sliderElementAnimateClass: boolean = false;
+  // @HostBinding('class.animate')
+  // public sliderElementAnimateClass: boolean = false;
   @HostBinding('class.with-legend')
   public sliderElementWithLegendClass: boolean = false;
 
@@ -156,11 +156,9 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   // public selectionBarDraggableClass: boolean = false;
 
   // Event listeners
-  private eventListenerHelper: EventListenerHelper = null;
+  private eventListenerHelper: EventosHelper = null;
   private onMoveEventListener: EventListener = null;
   private onEndEventListener: EventListener = null;
-  // Whether currently moving the slider (between onStart() and onEnd())
-  private moving: boolean = false;
 
   // Callbacks for reactive forms support
   private onTouchedCallback: (value: any) => void = null;
@@ -171,7 +169,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     private elementRef: ElementRef,
     private changeDetectionRef: ChangeDetectorRef
   ) {
-    this.eventListenerHelper = new EventListenerHelper(this.renderer);
+    this.eventListenerHelper = new EventosHelper(this.renderer);
   }
 
   // OnInit interface
@@ -209,14 +207,14 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   // OnChanges interface
   public ngOnChanges(changes: SimpleChanges): void {
     // Always apply options first
-    if (!ValoresHelper.isNullOrUndefined(changes.options)) {
+    if (!UtilsHelper.esIndefinidoONulo(changes.options)) {
       this.onChangeOptions();
     }
 
     // Then value changes
     if (
-      !ValoresHelper.isNullOrUndefined(changes.value) ||
-      !ValoresHelper.isNullOrUndefined(changes.valorSuperior)
+      !UtilsHelper.esIndefinidoONulo(changes.value) ||
+      !UtilsHelper.esIndefinidoONulo(changes.valorSuperior)
     ) {
       this.inputModelChangeSubject.next({
         valor: this.valor,
@@ -274,7 +272,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         // Hack to reset the status of the distinctUntilChanged() - if a "fake" event comes through with forceChange=true,
         // we forcefully by-pass distinctUntilChanged(), but otherwise drop the event
         filter((modelChange: InputModelChange) => !modelChange.forceChange && !modelChange.internalChange),
-        !ValoresHelper.isNullOrUndefined(interval)
+        !UtilsHelper.esIndefinidoONulo(interval)
           ? throttleTime(interval, undefined, { leading: true, trailing: true })
           : tap(() => {}) // no-op
       )
@@ -285,7 +283,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.outputModelChangeSubscription = this.outputModelChangeSubject
       .pipe(
         distinctUntilChanged(ModelChange.compare),
-        !ValoresHelper.isNullOrUndefined(interval)
+        !UtilsHelper.esIndefinidoONulo(interval)
           ? throttleTime(interval, undefined, { leading: true, trailing: true })
           : tap(() => {}) // no-op
       )
@@ -293,28 +291,28 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   }
 
   private unsubscribeOnMove(): void {
-    if (!ValoresHelper.isNullOrUndefined(this.onMoveEventListener)) {
+    if (!UtilsHelper.esIndefinidoONulo(this.onMoveEventListener)) {
       this.eventListenerHelper.detachEventListener(this.onMoveEventListener);
       this.onMoveEventListener = null;
     }
   }
 
   private unsubscribeOnEnd(): void {
-    if (!ValoresHelper.isNullOrUndefined(this.onEndEventListener)) {
+    if (!UtilsHelper.esIndefinidoONulo(this.onEndEventListener)) {
       this.eventListenerHelper.detachEventListener(this.onEndEventListener);
       this.onEndEventListener = null;
     }
   }
 
   private unsubscribeInputModelChangeSubject(): void {
-    if (!ValoresHelper.isNullOrUndefined(this.inputModelChangeSubscription)) {
+    if (!UtilsHelper.esIndefinidoONulo(this.inputModelChangeSubscription)) {
       this.inputModelChangeSubscription.unsubscribe();
       this.inputModelChangeSubscription = null;
     }
   }
 
   private unsubscribeOutputModelChangeSubject(): void {
-    if (!ValoresHelper.isNullOrUndefined(this.outputModelChangeSubscription)) {
+    if (!UtilsHelper.esIndefinidoONulo(this.outputModelChangeSubscription)) {
       this.outputModelChangeSubscription.unsubscribe();
       this.outputModelChangeSubscription = null;
     }
@@ -339,22 +337,22 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   }
 
   private modelValueToViewValue(modelValue: number): number {
-    if (ValoresHelper.isNullOrUndefined(modelValue)) {
+    if (UtilsHelper.esIndefinidoONulo(modelValue)) {
       return NaN;
     }
 
     if (
-      !ValoresHelper.isNullOrUndefined(this.configuracionDefault.stepsArray) &&
+      !UtilsHelper.esIndefinidoONulo(this.configuracionDefault.stepsArray) &&
       !this.configuracionDefault.bindIndexForStepsArray
     ) {
-      return ValoresHelper.findStepIndex(+modelValue, this.configuracionDefault.stepsArray);
+      return UtilsHelper.findStepIndex(+modelValue, this.configuracionDefault.stepsArray);
     }
     return +modelValue;
   }
 
   private aplicarValorAlModelo(viewValue: number): number {
     if (
-      !ValoresHelper.isNullOrUndefined(this.configuracionDefault.stepsArray) &&
+      !UtilsHelper.esIndefinidoONulo(this.configuracionDefault.stepsArray) &&
       !this.configuracionDefault.bindIndexForStepsArray
     ) {
       return this.obtenerValorNodo(viewValue);
@@ -364,7 +362,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   private obtenerValorNodo(sliderValor: number): number {
     const nodo: SliderNodo = this.configuracionDefault.stepsArray[sliderValor];
-    return !ValoresHelper.isNullOrUndefined(nodo) ? nodo.valor : NaN;
+    return !UtilsHelper.esIndefinidoONulo(nodo) ? nodo.valor : NaN;
   }
 
   private aplicarCambiosAlModelo(): void {
@@ -424,10 +422,10 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       this.valueChange.emit(modelChange.valor);
       this.valorSuperiorChange.emit(modelChange.valorSuperior);
 
-      if (!ValoresHelper.isNullOrUndefined(this.onChangeCallback)) {
+      if (!UtilsHelper.esIndefinidoONulo(this.onChangeCallback)) {
         this.onChangeCallback([modelChange.valor, modelChange.valorSuperior]);
       }
-      if (!ValoresHelper.isNullOrUndefined(this.onTouchedCallback)) {
+      if (!UtilsHelper.esIndefinidoONulo(this.onTouchedCallback)) {
         this.onTouchedCallback([modelChange.valor, modelChange.valorSuperior]);
       }
     };
@@ -450,17 +448,17 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     inputNormalizado.valor = input.valor;
     inputNormalizado.valorSuperior = input.valorSuperior;
 
-    if (!ValoresHelper.isNullOrUndefined(this.configuracionDefault.stepsArray)) {
+    if (!UtilsHelper.esIndefinidoONulo(this.configuracionDefault.stepsArray)) {
       // When using steps array, only round to nearest step in the array
       // No other enforcement can be done, as the step array may be out of order, and that is perfectly fine
       if (this.configuracionDefault.enforceStepsArray) {
-        const valueIndex: number = ValoresHelper.findStepIndex(
+        const valueIndex: number = UtilsHelper.findStepIndex(
           inputNormalizado.valor,
           this.configuracionDefault.stepsArray
         );
         inputNormalizado.valor = this.configuracionDefault.stepsArray[valueIndex].valor;
 
-        const valorSuperiorIndex: number = ValoresHelper.findStepIndex(
+        const valorSuperiorIndex: number = UtilsHelper.findStepIndex(
           inputNormalizado.valorSuperior,
           this.configuracionDefault.stepsArray
         );
@@ -476,13 +474,13 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     }
 
     if (this.configuracionDefault.enforceRange) {
-      inputNormalizado.valor = MathHelper.clampToRange(
+      inputNormalizado.valor = UtilsHelper.clampToRange(
         inputNormalizado.valor,
         this.configuracionDefault.limiteInferior,
         this.configuracionDefault.limiteSuperior
       );
 
-      inputNormalizado.valorSuperior = MathHelper.clampToRange(
+      inputNormalizado.valorSuperior = UtilsHelper.clampToRange(
         inputNormalizado.valorSuperior,
         this.configuracionDefault.limiteInferior,
         this.configuracionDefault.limiteSuperior
@@ -550,9 +548,9 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.configuracionDefault.showSelectionBar =
       this.configuracionDefault.showSelectionBar ||
       this.configuracionDefault.showSelectionBarEnd ||
-      !ValoresHelper.isNullOrUndefined(this.configuracionDefault.showSelectionBarFromValue);
+      !UtilsHelper.esIndefinidoONulo(this.configuracionDefault.showSelectionBarFromValue);
 
-    if (!ValoresHelper.isNullOrUndefined(this.configuracionDefault.stepsArray)) {
+    if (!UtilsHelper.esIndefinidoONulo(this.configuracionDefault.stepsArray)) {
       this.aplicarConfiguracionArrayNodos();
     } else {
       this.aplicarConfiguracionTopes();
@@ -564,7 +562,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.configuracionDefault.limiteSuperior = this.configuracionDefault.stepsArray.length - 1;
     this.configuracionDefault.nodo = 1;
 
-    if (ValoresHelper.isNullOrUndefined(this.configuracionDefault.translate)) {
+    if (UtilsHelper.esIndefinidoONulo(this.configuracionDefault.translate)) {
       this.configuracionDefault.translate = (modelValue: number): string => {
         if (this.configuracionDefault.bindIndexForStepsArray) {
           return String(this.obtenerValorNodo(modelValue));
@@ -575,7 +573,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   }
 
   private aplicarConfiguracionTopes(): void {
-    if (ValoresHelper.isNullOrUndefined(this.configuracionDefault.nodo)) {
+    if (UtilsHelper.esIndefinidoONulo(this.configuracionDefault.nodo)) {
       this.configuracionDefault.nodo = 1;
     } else {
       this.configuracionDefault.nodo = +this.configuracionDefault.nodo;
@@ -585,15 +583,15 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     }
 
     if (
-      ValoresHelper.isNullOrUndefined(this.configuracionDefault.limiteSuperior) ||
-      ValoresHelper.isNullOrUndefined(this.configuracionDefault.limiteInferior)
+      UtilsHelper.esIndefinidoONulo(this.configuracionDefault.limiteSuperior) ||
+      UtilsHelper.esIndefinidoONulo(this.configuracionDefault.limiteInferior)
     ) {
       throw Error('floor and ceil options must be supplied');
     }
     this.configuracionDefault.limiteSuperior = +this.configuracionDefault.limiteSuperior;
     this.configuracionDefault.limiteInferior = +this.configuracionDefault.limiteInferior;
 
-    if (ValoresHelper.isNullOrUndefined(this.configuracionDefault.translate)) {
+    if (UtilsHelper.esIndefinidoONulo(this.configuracionDefault.translate)) {
       this.configuracionDefault.translate = (value: number): string => String(value);
     }
   }
@@ -610,16 +608,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   // Update each elements style based on options
   private manageElementsStyle(): void {
     this.actualizarEscala();
-
     this.fullBarTransparentClass = this.configuracionDefault.showOuterSelectionBars;
-
-    // Changing animate class may interfere with slider reset/initialisation, so we should set it separately,
-    // after all is properly set up
-    if (this.sliderElementAnimateClass !== this.configuracionDefault.animate) {
-      setTimeout((): void => {
-        this.sliderElementAnimateClass = this.configuracionDefault.animate;
-      });
-    }
   }
 
   // Manage the events bindings based on readOnly and disabled options
@@ -765,7 +754,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   // Return the translated value if a translate function is provided else the original value
   private getDisplayValue(value: number, which: TipoLabel): string {
     if (
-      !ValoresHelper.isNullOrUndefined(this.configuracionDefault.stepsArray) &&
+      !UtilsHelper.esIndefinidoONulo(this.configuracionDefault.stepsArray) &&
       !this.configuracionDefault.bindIndexForStepsArray
     ) {
       value = this.obtenerValorNodo(value);
@@ -775,13 +764,13 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   // Round value to step and precision based on minValue
   private redondearNodo(value: number): number {
-    let diferenciaNodo: number = MathHelper.roundToPrecisionLimit(
+    let diferenciaNodo: number = UtilsHelper.roundToPrecisionLimit(
       (value - this.configuracionDefault.limiteInferior) / this.configuracionDefault.nodo,
       this.configuracionDefault.precisionLimit
     );
 
     diferenciaNodo = Math.round(diferenciaNodo) * this.configuracionDefault.nodo;
-    return MathHelper.roundToPrecisionLimit(
+    return UtilsHelper.roundToPrecisionLimit(
       this.configuracionDefault.limiteInferior + diferenciaNodo,
       this.configuracionDefault.precisionLimit
     );
@@ -789,12 +778,12 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   // Translate value to pixel position
   private valorAPosicion(val: number): number {
-    let fn: ValorAPosicionFunction = ValoresHelper.linearValueToPosition;
-    if (!ValoresHelper.isNullOrUndefined(this.configuracionDefault.customValueToPosition)) {
+    let fn: ValorAPosicionFunction = UtilsHelper.linearValueToPosition;
+    if (!UtilsHelper.esIndefinidoONulo(this.configuracionDefault.customValueToPosition)) {
       fn = this.configuracionDefault.customValueToPosition;
     }
 
-    val = MathHelper.clampToRange(
+    val = UtilsHelper.clampToRange(
       val,
       this.configuracionDefault.limiteInferior,
       this.configuracionDefault.limiteSuperior
@@ -804,7 +793,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       this.configuracionDefault.limiteInferior,
       this.configuracionDefault.limiteSuperior
     );
-    if (ValoresHelper.isNullOrUndefined(percent)) {
+    if (UtilsHelper.esIndefinidoONulo(percent)) {
       percent = 0;
     }
     return percent * this.maxHandlePosition;
@@ -813,8 +802,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   // Translate position to model value
   private positionToValue(position: number): number {
     let percent: number = position / this.maxHandlePosition;
-    let fn: PosicionAValorFunction = ValoresHelper.linearPositionToValue;
-    if (!ValoresHelper.isNullOrUndefined(this.configuracionDefault.customPositionToValue)) {
+    let fn: PosicionAValorFunction = UtilsHelper.linearPositionToValue;
+    if (!UtilsHelper.esIndefinidoONulo(this.configuracionDefault.customPositionToValue)) {
       fn = this.configuracionDefault.customPositionToValue;
     }
     const value: number = fn(
@@ -822,11 +811,11 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       this.configuracionDefault.limiteInferior,
       this.configuracionDefault.limiteSuperior
     );
-    return !ValoresHelper.isNullOrUndefined(value) ? value : 0;
+    return !UtilsHelper.esIndefinidoONulo(value) ? value : 0;
   }
 
   // Compute the event position depending on whether the slider is horizontal or vertical
-  private getEventPosition(event: MouseEvent): number {
+  private obtenerPosicion(event: MouseEvent): number {
     const sliderElementBoundingRect: ClientRect = this.elementRef.nativeElement.getBoundingClientRect();
 
     const sliderPos: number = sliderElementBoundingRect.left;
@@ -836,7 +825,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   }
 
   private obtenerDeslizableMasCercano(event: MouseEvent): TipoPunto {
-    const position: number = this.getEventPosition(event);
+    const position: number = this.obtenerPosicion(event);
     const distanceMin: number = Math.abs(position - this.minHandleElement.position);
     const distanceMax: number = Math.abs(position - this.maxHandleElement.position);
 
@@ -873,7 +862,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.unsubscribeOnEnd();
 
     for (const element of this.obtenerSliders()) {
-      if (!ValoresHelper.isNullOrUndefined(element)) {
+      if (!UtilsHelper.esIndefinidoONulo(element)) {
         element.off();
       }
     }
@@ -889,10 +878,9 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   ): void {
     event.stopPropagation();
     event.preventDefault();
-    this.moving = false;
     this.calcularDimensiones();
 
-    if (ValoresHelper.isNullOrUndefined(tipoPunto)) {
+    if (UtilsHelper.esIndefinidoONulo(tipoPunto)) {
       tipoPunto = this.obtenerDeslizableMasCercano(event);
     }
 
@@ -935,53 +923,33 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     }
   }
 
-  // onMove event handler
   private onMove(event: MouseEvent): void {
-    if (this.configuracionDefault.animate && this.moving) {
-      this.sliderElementAnimateClass = false;
-    }
-
-    this.moving = true;
-    const newPos: number = this.getEventPosition(event);
-    let newValue: number;
-    const ceilValue: number = this.configuracionDefault.limiteSuperior;
-    const floorValue: number = this.configuracionDefault.limiteInferior;
-
-    if (newPos <= 0) {
-      newValue = floorValue;
-    } else if (newPos >= this.maxHandlePosition) {
-      newValue = ceilValue;
+    const nuevaPosicion: number = this.obtenerPosicion(event);
+    let nuevoValor: number;
+    if (nuevaPosicion <= 0) {
+      nuevoValor = this.configuracionDefault.limiteInferior;
+    } else if (nuevaPosicion >= this.maxHandlePosition) {
+      nuevoValor = this.configuracionDefault.limiteSuperior;
     } else {
-      newValue = this.positionToValue(newPos);
-      newValue = this.redondearNodo(newValue);
+      nuevoValor = this.positionToValue(nuevaPosicion);
+      nuevoValor = this.redondearNodo(nuevoValor);
     }
-    this.positionTrackingHandle(newValue);
+    this.positionTrackingHandle(nuevoValor);
   }
 
   private onEnd(event: MouseEvent): void {
-    this.moving = false;
-    if (this.configuracionDefault.animate) {
-      this.sliderElementAnimateClass = true;
-    }
-
     this.deslizable.activo = false;
-
     this.unsubscribeOnMove();
     this.unsubscribeOnEnd();
-
     this.userChangeEnd.emit(this.getSliderChange());
   }
 
   /** Get min value depending on whether the newPos is outOfBounds above or below the bar */
-  private getMinValue(newPos: number, outOfBounds: boolean, isAbove: boolean): number {
+  private getMinValue(newPos: number, outOfBounds: boolean): number {
     let value: number = null;
 
     if (outOfBounds) {
-      if (isAbove) {
-        value = this.configuracionDefault.limiteSuperior - this.deslizable.diferencia;
-      } else {
-        value = this.configuracionDefault.limiteInferior;
-      }
+      value = this.configuracionDefault.limiteInferior;
     } else {
       value = this.positionToValue(newPos - this.deslizable.limiteInferior);
     }
@@ -989,15 +957,11 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   }
 
   /** Get max value depending on whether the newPos is outOfBounds above or below the bar */
-  private getMaxValue(newPos: number, outOfBounds: boolean, isAbove: boolean): number {
+  private getMaxValue(newPos: number, outOfBounds: boolean): number {
     let value: number = null;
 
     if (outOfBounds) {
-      if (isAbove) {
-        value = this.configuracionDefault.limiteSuperior;
-      } else {
-        value = this.configuracionDefault.limiteInferior + this.deslizable.diferencia;
-      }
+      value = this.configuracionDefault.limiteInferior + this.deslizable.diferencia;
     } else {
       value = this.positionToValue(newPos - this.deslizable.limiteInferior) + this.deslizable.diferencia;
     }
@@ -1006,35 +970,30 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   }
 
   private onDragMove(event?: MouseEvent): void {
-    const newPos: number = this.getEventPosition(event);
-
-    if (this.configuracionDefault.animate && this.moving) {
-      this.sliderElementAnimateClass = false;
-    }
-    this.moving = true;
-    let newMinValue = this.getMinValue(newPos, false, false);
-    let newMaxValue = this.getMaxValue(newPos, false, false);
+    const newPos: number = this.obtenerPosicion(event);
+    let newMinValue = this.getMinValue(newPos, false);
+    let newMaxValue = this.getMaxValue(newPos, false);
     this.positionTrackingBar(newMinValue, newMaxValue);
   }
 
   // Set the new value and position for the entire bar
   private positionTrackingBar(newMinValue: number, newMaxValue: number): void {
     if (
-      !ValoresHelper.isNullOrUndefined(this.configuracionDefault.minLimit) &&
+      !UtilsHelper.esIndefinidoONulo(this.configuracionDefault.minLimit) &&
       newMinValue < this.configuracionDefault.minLimit
     ) {
       newMinValue = this.configuracionDefault.minLimit;
-      newMaxValue = MathHelper.roundToPrecisionLimit(
+      newMaxValue = UtilsHelper.roundToPrecisionLimit(
         newMinValue + this.deslizable.diferencia,
         this.configuracionDefault.precisionLimit
       );
     }
     if (
-      !ValoresHelper.isNullOrUndefined(this.configuracionDefault.maxLimit) &&
+      !UtilsHelper.esIndefinidoONulo(this.configuracionDefault.maxLimit) &&
       newMaxValue > this.configuracionDefault.maxLimit
     ) {
       newMaxValue = this.configuracionDefault.maxLimit;
-      newMinValue = MathHelper.roundToPrecisionLimit(
+      newMinValue = UtilsHelper.roundToPrecisionLimit(
         newMaxValue - this.deslizable.diferencia,
         this.configuracionDefault.precisionLimit
       );
@@ -1051,11 +1010,10 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   private positionTrackingHandle(newValue: number): void {
     newValue = this.applyMinMaxLimit(newValue);
     if (this.tipoPuntoActivo === TipoPunto.Min && newValue > this.vistaValorSuperior) {
-      newValue = this.applyMinMaxRange(this.vistaValorSuperior);
+      newValue = this.vistaValorSuperior;
     } else if (this.tipoPuntoActivo === TipoPunto.Max && newValue < this.vistaValorInferior) {
-      newValue = this.applyMinMaxRange(this.vistaValorInferior);
+      newValue = this.vistaValorInferior;
     }
-    newValue = this.applyMinMaxRange(newValue);
     /* This is to check if we need to switch the min and max handles */
     if (this.tipoPuntoActivo === TipoPunto.Min && newValue > this.vistaValorSuperior) {
       this.vistaValorInferior = this.vistaValorSuperior;
@@ -1087,53 +1045,16 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   private applyMinMaxLimit(newValue: number): number {
     if (
-      !ValoresHelper.isNullOrUndefined(this.configuracionDefault.minLimit) &&
+      !UtilsHelper.esIndefinidoONulo(this.configuracionDefault.minLimit) &&
       newValue < this.configuracionDefault.minLimit
     ) {
       return this.configuracionDefault.minLimit;
     }
     if (
-      !ValoresHelper.isNullOrUndefined(this.configuracionDefault.maxLimit) &&
+      !UtilsHelper.esIndefinidoONulo(this.configuracionDefault.maxLimit) &&
       newValue > this.configuracionDefault.maxLimit
     ) {
       return this.configuracionDefault.maxLimit;
-    }
-    return newValue;
-  }
-
-  private applyMinMaxRange(newValue: number): number {
-    const oppositeValue: number =
-      this.tipoPuntoActivo === TipoPunto.Min ? this.vistaValorSuperior : this.vistaValorInferior;
-    const diferencia: number = Math.abs(newValue - oppositeValue);
-    if (!ValoresHelper.isNullOrUndefined(this.configuracionDefault.minRange)) {
-      if (diferencia < this.configuracionDefault.minRange) {
-        if (this.tipoPuntoActivo === TipoPunto.Min) {
-          return MathHelper.roundToPrecisionLimit(
-            this.vistaValorSuperior - this.configuracionDefault.minRange,
-            this.configuracionDefault.precisionLimit
-          );
-        } else if (this.tipoPuntoActivo === TipoPunto.Max) {
-          return MathHelper.roundToPrecisionLimit(
-            this.vistaValorInferior + this.configuracionDefault.minRange,
-            this.configuracionDefault.precisionLimit
-          );
-        }
-      }
-    }
-    if (!ValoresHelper.isNullOrUndefined(this.configuracionDefault.maxRange)) {
-      if (diferencia > this.configuracionDefault.maxRange) {
-        if (this.tipoPuntoActivo === TipoPunto.Min) {
-          return MathHelper.roundToPrecisionLimit(
-            this.vistaValorSuperior - this.configuracionDefault.maxRange,
-            this.configuracionDefault.precisionLimit
-          );
-        } else if (this.tipoPuntoActivo === TipoPunto.Max) {
-          return MathHelper.roundToPrecisionLimit(
-            this.vistaValorInferior + this.configuracionDefault.maxRange,
-            this.configuracionDefault.precisionLimit
-          );
-        }
-      }
     }
     return newValue;
   }

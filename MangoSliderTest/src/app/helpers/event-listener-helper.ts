@@ -1,27 +1,27 @@
 import { Renderer2 } from '@angular/core';
 import { Subject } from 'rxjs';
 import { tap, throttleTime } from 'rxjs/operators';
-import { EventListener } from '../models';
-import { ValoresHelper } from './valores-helper';
+import { EventListener } from '../models/event-listener';
+import { UtilsHelper } from './utils-helper';
 
 /**
  * Helper class to attach event listeners to DOM elements with debounce support using rxjs
  */
-export class EventListenerHelper {
+export class EventosHelper {
   constructor(private renderer: Renderer2) {}
 
   public detachEventListener(eventListener: EventListener): void {
-    if (!ValoresHelper.isNullOrUndefined(eventListener.eventosSubscription)) {
+    if (!UtilsHelper.esIndefinidoONulo(eventListener.eventosSubscription)) {
       eventListener.eventosSubscription.unsubscribe();
       eventListener.eventosSubscription = null;
     }
 
-    if (!ValoresHelper.isNullOrUndefined(eventListener.eventos)) {
+    if (!UtilsHelper.esIndefinidoONulo(eventListener.eventos)) {
       eventListener.eventos.complete();
       eventListener.eventos = null;
     }
 
-    if (!ValoresHelper.isNullOrUndefined(eventListener.teardownCallback)) {
+    if (!UtilsHelper.esIndefinidoONulo(eventListener.teardownCallback)) {
       eventListener.teardownCallback();
       eventListener.teardownCallback = null;
     }
@@ -45,7 +45,7 @@ export class EventListenerHelper {
 
     listener.eventosSubscription = listener.eventos
       .pipe(
-        !ValoresHelper.isNullOrUndefined(throttleInterval)
+        !UtilsHelper.esIndefinidoONulo(throttleInterval)
           ? throttleTime(throttleInterval, undefined, { leading: true, trailing: true })
           : tap(() => {}) // no-op
       )
