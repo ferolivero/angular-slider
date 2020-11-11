@@ -27,12 +27,6 @@ export class CustomRangeElementDirective {
     return this._scale;
   }
 
-  @HostBinding('style.opacity')
-  opacity: number = 1;
-
-  @HostBinding('style.visibility')
-  visibility: string = 'visible';
-
   @HostBinding('style.left')
   left: string = '';
 
@@ -69,7 +63,7 @@ export class CustomRangeElementDirective {
   }
 
   // Set element width/height depending on whether slider is horizontal or vertical
-  setDimension(dim: number): void {
+  aplicarDimension(dim: number): void {
     if (this._dimension !== dim && !this.isRefDestroyed()) {
       this.changeDetectionRef.markForCheck();
     }
@@ -82,7 +76,7 @@ export class CustomRangeElementDirective {
     return this.elemRef.nativeElement.getBoundingClientRect();
   }
 
-  on(eventName: string, callback: (event: any) => void, debounceInterval?: number): void {
+  activarEvento(eventName: string, callback: (event: any) => void, debounceInterval?: number): void {
     const listener: EventListener = this.eventListenerHelper.attachEventListener(
       this.elemRef.nativeElement,
       eventName,
@@ -92,7 +86,7 @@ export class CustomRangeElementDirective {
     this.eventListeners.push(listener);
   }
 
-  off(eventName?: string): void {
+  desactivarEvento(eventName?: string): void {
     let listenersToKeep: EventListener[];
     let listenersToRemove: EventListener[];
     if (!UtilsHelper.esIndefinidoONulo(eventName)) {

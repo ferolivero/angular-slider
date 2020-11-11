@@ -2,17 +2,14 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
-  ContentChild,
   ElementRef,
   EventEmitter,
-  HostBinding,
   HostListener,
   Input,
   OnDestroy,
   OnInit,
   Output,
   Renderer2,
-  TemplateRef,
   ViewChild
 } from '@angular/core';
 import { Subject, Subscription } from 'rxjs';
@@ -28,7 +25,6 @@ import {
   OutputModelChange,
   SliderChange,
   SliderValores,
-  TipoLabel,
   TipoPunto,
   TipoSlider
 } from '../models';
@@ -119,14 +115,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('maxHandle', { read: CustomRangeHandleDirective })
   maxHandleElement: CustomRangeHandleDirective;
 
-  // Floor label
-  @ViewChild('floorLabel', { read: CustomRangeLabelDirective })
-  floorLabelElement: CustomRangeLabelDirective;
-
-  // Ceiling label
-  @ViewChild('ceilLabel', { read: CustomRangeLabelDirective })
-  ceilLabelElement: CustomRangeLabelDirective;
-
   // Label above the low value
   @ViewChild('minHandleLabel', { read: CustomRangeLabelDirective })
   minHandleLabelElement: CustomRangeLabelDirective;
@@ -134,13 +122,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
   // Label above the high value
   @ViewChild('maxHandleLabel', { read: CustomRangeLabelDirective })
   maxHandleLabelElement: CustomRangeLabelDirective;
-
-  // Optional custom template for displaying tooltips
-  @ContentChild('tooltipTemplate')
-  public tooltipTemplate: TemplateRef<any>;
-
-  @HostBinding('class.with-legend')
-  public sliderElementWithLegendClass: boolean = false;
 
   // Event listeners
   private eventListenerHelper: EventosHelper = null;
@@ -163,6 +144,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
     } else {
       this.configuracion.limiteInferior = this.min;
       this.configuracion.limiteSuperior = this.max;
+      this.valor = this.min;
       this.valorSuperior = this.max;
     }
   }
@@ -181,8 +163,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.actualizarEscala();
     this.calcularDimensiones();
-    this.actualizarLimiteSuperiorLabel();
-    this.actualizarLimiteInferiorLabel();
     this.inicializarDeslizables();
     this.manageEventsBindings();
     this.initHasRun = true;
@@ -432,12 +412,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.configuracion.limiteInferior = 0;
     this.configuracion.limiteSuperior = this.configuracion.valoresPosibles.length - 1;
     this.configuracion.nodo = 1;
-
-    if (UtilsHelper.esIndefinidoONulo(this.configuracion.translate)) {
-      this.configuracion.translate = (modelValue: number): string => {
-        return String(modelValue);
-      };
-    }
   }
 
   private aplicarConfiguracionNormal(): void {
@@ -452,32 +426,26 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.configuracion.limiteSuperior = +this.configuracion.limiteSuperior;
     this.configuracion.limiteInferior = +this.configuracion.limiteInferior;
-
-    if (UtilsHelper.esIndefinidoONulo(this.configuracion.translate)) {
-      this.configuracion.translate = (value: number): string => String(value);
-    }
   }
 
   // Manage the events bindings based on readOnly and disabled options
   private manageEventsBindings(): void {
-    this.bindEvents();
+    this.bindearEventos();
   }
 
   private actualizarEscala(): void {
-    let elements = this.obtenerSliders();
+    let elements = this.obtenerTodosElementosSliders();
     for (const element of elements) {
       element.setScale(this.configuracion.scale);
     }
   }
 
-  private obtenerSliders(): CustomRangeElementDirective[] {
+  private obtenerTodosElementosSliders(): CustomRangeElementDirective[] {
     return [
       this.fullBarElement,
       this.selectionBarElement,
       this.minHandleElement,
       this.maxHandleElement,
-      this.floorLabelElement,
-      this.ceilLabelElement,
       this.minHandleLabelElement,
       this.maxHandleLabelElement
     ];
@@ -501,8 +469,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.maxHandlePosition = this.fullBarElement.dimension - handleWidth;
 
     if (this.initHasRun) {
-      this.actualizarLimiteInferiorLabel();
-      this.actualizarLimiteSuperiorLabel();
       this.inicializarDeslizables();
     }
   }
@@ -520,25 +486,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   private isRefDestroyed(): boolean {
     return this.changeDetectionRef['destroyed'];
-  }
-
-  // Update position of the floor label
-  private actualizarLimiteInferiorLabel(): void {
-    this.floorLabelElement.setValue(
-      this.getDisplayValue(this.configuracion.limiteInferior, TipoLabel.LimiteInferior)
-    );
-    this.floorLabelElement.calcularDimension();
-    this.floorLabelElement.setPosition(0);
-  }
-
-  // Update position of the ceiling label
-  private actualizarLimiteSuperiorLabel(): void {
-    this.ceilLabelElement.setValue(
-      this.getDisplayValue(this.configuracion.limiteSuperior, TipoLabel.LimiteSuperior)
-    );
-    this.ceilLabelElement.calcularDimension();
-    const position = this.fullBarElement.dimension - this.ceilLabelElement.dimension;
-    this.ceilLabelElement.setPosition(position);
   }
 
   // Update slider handles and label positions
@@ -571,18 +518,14 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
   // Update low slider handle position and label
   private actualizarDeslizableInferior(newPos: number): void {
     this.minHandleElement.setPosition(newPos);
-    this.minHandleLabelElement.setValue(
-      this.getDisplayValue(this.vistaValorInferior, TipoLabel.ValorInferior)
-    );
+    this.minHandleLabelElement.setValue(this.getDisplayValue(this.vistaValorInferior));
     this.minHandleLabelElement.setPosition(this.getHandleLabelPos(TipoPunto.Min, newPos));
   }
 
   // Update high slider handle position and label
   private actualizarDeslizableSuperior(newPos: number): void {
     this.maxHandleElement.setPosition(newPos);
-    this.maxHandleLabelElement.setValue(
-      this.getDisplayValue(this.vistaValorSuperior, TipoLabel.ValorSuperior)
-    );
+    this.maxHandleLabelElement.setValue(this.getDisplayValue(this.vistaValorSuperior));
     this.maxHandleLabelElement.setPosition(this.getHandleLabelPos(TipoPunto.Max, newPos));
   }
 
@@ -594,16 +537,15 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
 
     dimension = Math.abs(this.maxHandleElement.position - this.minHandleElement.position);
     position = positionForRange;
-    this.selectionBarElement.setDimension(dimension);
+    this.selectionBarElement.aplicarDimension(dimension);
     this.selectionBarElement.setPosition(position);
   }
 
-  // Return the translated value if a translate function is provided else the original value
-  private getDisplayValue(value: number, which: TipoLabel): string {
-    if (!UtilsHelper.esIndefinidoONulo(this.configuracion.valoresPosibles)) {
+  private getDisplayValue(value: number): string {
+    if (this.type === TipoSlider.Fixed) {
       value = this.obtenerValorNodo(value);
     }
-    return this.configuracion.translate(value, which);
+    return String('€' + value);
   }
 
   // Round value to step and precision based on minValue
@@ -635,7 +577,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // Translate position to model value
-  private positionToValue(position: number): number {
+  private aplicarPosicionAlValor(position: number): number {
     let percent: number = position / this.maxHandlePosition;
     const value: number = UtilsHelper.linearPositionToValue(
       percent,
@@ -669,32 +611,32 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // Bind mouse and touch events to slider handles
-  private bindEvents(): void {
-    this.selectionBarElement.on('mousedown', (event: MouseEvent): void =>
+  private bindearEventos(): void {
+    this.selectionBarElement.activarEvento('mousedown', (event: MouseEvent): void =>
       this.onStart(null, event, true, true, true)
     );
 
-    this.minHandleElement.on('mousedown', (event: MouseEvent): void =>
+    this.minHandleElement.activarEvento('mousedown', (event: MouseEvent): void =>
       this.onStart(TipoPunto.Min, event, true, true)
     );
 
-    this.maxHandleElement.on('mousedown', (event: MouseEvent): void =>
+    this.maxHandleElement.activarEvento('mousedown', (event: MouseEvent): void =>
       this.onStart(TipoPunto.Max, event, true, true)
     );
 
-    this.fullBarElement.on('mousedown', (event: MouseEvent): void =>
+    this.fullBarElement.activarEvento('mousedown', (event: MouseEvent): void =>
       this.onStart(null, event, true, true, true)
     );
   }
 
   // Unbind mouse and touch events to slider handles
-  private unbindEvents(): void {
+  private desbindearEventos(): void {
     this.unsubscribeOnMove();
     this.unsubscribeOnEnd();
 
-    for (const element of this.obtenerSliders()) {
+    for (const element of this.obtenerTodosElementosSliders()) {
       if (!UtilsHelper.esIndefinidoONulo(element)) {
-        element.off();
+        element.desactivarEvento();
       }
     }
   }
@@ -736,7 +678,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (bindEnd) {
       this.unsubscribeOnEnd();
 
-      const onEndCallback: (e: MouseEvent) => void = (e: MouseEvent): void => this.onEnd(e);
+      const onEndCallback: (e: MouseEvent) => void = (e: MouseEvent): void => this.onEnd();
       this.onEndEventListener = this.eventListenerHelper.attachEventListener(
         document,
         'mouseup',
@@ -762,13 +704,13 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
     } else if (nuevaPosicion >= this.maxHandlePosition) {
       nuevoValor = this.configuracion.limiteSuperior;
     } else {
-      nuevoValor = this.positionToValue(nuevaPosicion);
+      nuevoValor = this.aplicarPosicionAlValor(nuevaPosicion);
       nuevoValor = this.redondearNodo(nuevoValor);
     }
-    this.positionTrackingHandle(nuevoValor);
+    this.actualizarPosicionDeslizable(nuevoValor);
   }
 
-  private onEnd(event: MouseEvent): void {
+  private onEnd(): void {
     this.deslizable.activo = false;
     this.unsubscribeOnMove();
     this.unsubscribeOnEnd();
@@ -782,7 +724,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (outOfBounds) {
       value = this.configuracion.limiteInferior;
     } else {
-      value = this.positionToValue(newPos - this.deslizable.limiteInferior);
+      value = this.aplicarPosicionAlValor(newPos - this.deslizable.limiteInferior);
     }
     return this.redondearNodo(value);
   }
@@ -794,7 +736,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (outOfBounds) {
       value = this.configuracion.limiteInferior + this.deslizable.diferencia;
     } else {
-      value = this.positionToValue(newPos - this.deslizable.limiteInferior) + this.deslizable.diferencia;
+      value =
+        this.aplicarPosicionAlValor(newPos - this.deslizable.limiteInferior) + this.deslizable.diferencia;
     }
 
     return this.redondearNodo(value);
@@ -809,27 +752,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Set the new value and position for the entire bar
   private positionTrackingBar(newMinValue: number, newMaxValue: number): void {
-    if (
-      !UtilsHelper.esIndefinidoONulo(this.configuracion.minLimit) &&
-      newMinValue < this.configuracion.minLimit
-    ) {
-      newMinValue = this.configuracion.minLimit;
-      newMaxValue = UtilsHelper.roundToPrecisionLimit(
-        newMinValue + this.deslizable.diferencia,
-        this.configuracion.precisionLimit
-      );
-    }
-    if (
-      !UtilsHelper.esIndefinidoONulo(this.configuracion.maxLimit) &&
-      newMaxValue > this.configuracion.maxLimit
-    ) {
-      newMaxValue = this.configuracion.maxLimit;
-      newMinValue = UtilsHelper.roundToPrecisionLimit(
-        newMaxValue - this.deslizable.diferencia,
-        this.configuracion.precisionLimit
-      );
-    }
-
     this.vistaValorInferior = newMinValue;
     this.vistaValorSuperior = newMaxValue;
     this.aplicarCambiosAlModelo();
@@ -838,56 +760,23 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // Set the new value and position to the current tracking handle
-  private positionTrackingHandle(newValue: number): void {
-    newValue = this.applyMinMaxLimit(newValue);
-    if (this.tipoPuntoActivo === TipoPunto.Min && newValue > this.vistaValorSuperior) {
-      newValue = this.vistaValorSuperior;
-    } else if (this.tipoPuntoActivo === TipoPunto.Max && newValue < this.vistaValorInferior) {
-      newValue = this.vistaValorInferior;
-    }
-    /* This is to check if we need to switch the min and max handles */
-    if (this.tipoPuntoActivo === TipoPunto.Min && newValue > this.vistaValorSuperior) {
-      this.vistaValorInferior = this.vistaValorSuperior;
-      this.aplicarCambiosAlModelo();
-      this.actualizarDeslizables(TipoPunto.Min, this.maxHandleElement.position);
-      this.tipoPuntoActivo = TipoPunto.Max;
-      this.minHandleElement.active = false;
-      this.maxHandleElement.active = true;
-    } else if (this.tipoPuntoActivo === TipoPunto.Max && newValue < this.vistaValorInferior) {
-      this.vistaValorSuperior = this.vistaValorInferior;
-      this.aplicarCambiosAlModelo();
-      this.actualizarDeslizables(TipoPunto.Max, this.minHandleElement.position);
-      this.tipoPuntoActivo = TipoPunto.Min;
-      this.maxHandleElement.active = false;
-      this.minHandleElement.active = true;
+  private actualizarPosicionDeslizable(nuevoValor: number): void {
+    if (this.tipoPuntoActivo === TipoPunto.Min && nuevoValor > this.vistaValorSuperior) {
+      nuevoValor = this.vistaValorSuperior;
+    } else if (this.tipoPuntoActivo === TipoPunto.Max && nuevoValor < this.vistaValorInferior) {
+      nuevoValor = this.vistaValorInferior;
     }
 
-    if (this.getCurrentTrackingValue() !== newValue) {
+    if (this.getCurrentTrackingValue() !== nuevoValor) {
       if (this.tipoPuntoActivo === TipoPunto.Min) {
-        this.vistaValorInferior = newValue;
+        this.vistaValorInferior = nuevoValor;
         this.aplicarCambiosAlModelo();
       } else if (this.tipoPuntoActivo === TipoPunto.Max) {
-        this.vistaValorSuperior = newValue;
+        this.vistaValorSuperior = nuevoValor;
         this.aplicarCambiosAlModelo();
       }
-      this.actualizarDeslizables(this.tipoPuntoActivo, this.valorAPosicion(newValue));
+      this.actualizarDeslizables(this.tipoPuntoActivo, this.valorAPosicion(nuevoValor));
     }
-  }
-
-  private applyMinMaxLimit(newValue: number): number {
-    if (
-      !UtilsHelper.esIndefinidoONulo(this.configuracion.minLimit) &&
-      newValue < this.configuracion.minLimit
-    ) {
-      return this.configuracion.minLimit;
-    }
-    if (
-      !UtilsHelper.esIndefinidoONulo(this.configuracion.maxLimit) &&
-      newValue > this.configuracion.maxLimit
-    ) {
-      return this.configuracion.maxLimit;
-    }
-    return newValue;
   }
 
   private getSliderChange(): SliderChange {
@@ -899,7 +788,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public ngOnDestroy(): void {
-    this.unbindEvents();
+    this.desbindearEventos();
     this.unsubscribeInputModelChangeSubject();
     this.unsubscribeOutputModelChangeSubject();
   }

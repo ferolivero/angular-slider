@@ -33,7 +33,7 @@ export class UtilsHelper {
     return +value.toPrecision(precisionLimit);
   }
 
-  static clampToRange(value: number, floor: number, ceil: number): number {
-    return Math.min(Math.max(value, floor), ceil);
+  static clampToRange(valor: number, limiteInferior: number, limiteSuperior: number): number {
+    return Math.min(Math.max(valor, limiteInferior), limiteSuperior);
   }
 }
