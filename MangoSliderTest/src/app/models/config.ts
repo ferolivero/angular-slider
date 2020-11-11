@@ -1,5 +1,5 @@
 import { TranslateFunction } from '.';
-import { ObtenerLabel, PosicionAValorFunction, ValorAPosicionFunction } from './functions';
+import { PosicionAValorFunction, ValorAPosicionFunction } from './functions';
 import { SliderNodo } from './slider-nodo';
 
 /** Slider options */
@@ -43,14 +43,6 @@ export class Config {
   /** Custom translate function. Use this if you want to translate values displayed
       on the slider. */
   translate?: TranslateFunction = null;
-
-  /** Use to display legend under ticks (thus, it needs to be used along with
-     showTicks or showTicksValues). The function will be called with each tick
-     value and returned content will be displayed under the tick as a legend.
-     If the returned value is null, then no legend is displayed under
-     the corresponding tick.You can also directly provide the legend values
-     in the stepsArray option. */
-  obtenerLabel?: ObtenerLabel = null;
 
   /** If you want to display a slider with non linear/number steps.
      Just pass an array with each slider value and that's it; the floor, ceil and step settings
@@ -97,11 +89,11 @@ export class Config {
    * This is provided to avoid a flood of outgoing events affecting Angular app performance. */
   outputEventsInterval?: number = 100;
 
-  /** Set to true to display a tick for each step of the slider. */
-  showTicks?: boolean = false;
+  // /** Set to true to display a tick for each step of the slider. */
+  // showTicks?: boolean = false;
 
-  /** Set to true to display a tick and the step value for each step of the slider.. */
-  showTicksValues?: boolean = false;
+  // /** Set to true to display a tick and the step value for each step of the slider.. */
+  // showTicksValues?: boolean = false;
 
   /* The step between each tick to display. If not set, the step value is used.
     Not used when ticksArray is specified. */
@@ -123,14 +115,6 @@ export class Config {
   /** Same as ticksTooltip but for ticks values. */
   ticksValuesTooltip?: (value: number) => string = null;
 
-  /** Set to true to display the slider vertically.
-    The slider will take the full height of its parent.
-    Changing this value at runtime is not currently supported. */
-  // vertical?: boolean = false;
-
-  /** Function that returns the color of a tick. showTicks must be enabled. */
-  getTickColor?: (value: number) => string = null;
-
   /** If you display the slider in an element that uses transform: scale(0.5), set the scale value to 2
     so that the slider is rendered properly and the events are handled correctly. */
   scale?: number = 1;
@@ -149,19 +133,6 @@ export class Config {
     When set to false, if the model values are modified from outside the slider, and they are outside allowed range,
     the slider may be rendered incorrectly. However, setting this to false may be useful if you want to perform custom normalisation. */
   enforceStepsArray?: boolean = true;
-
-  /** Set to true to prevent to user from switching the min and max handles. Applies to range slider only. */
-  noSwitching?: boolean = true;
-
-  /** Set to true to show graphs right to left.
-    If vertical is true it will be from top to bottom and left / right arrow functions reversed. */
-  rightToLeft?: boolean = false;
-
-  /** Set to true to keep the slider labels inside the slider bounds. */
-  boundPointerLabels?: boolean = true;
-
-  /** Set to true to use a logarithmic scale to display the slider.  */
-  logScale?: boolean = false;
 
   /** Function that returns the position on the slider for a given value.
     The position must be a percentage between 0 and 1.

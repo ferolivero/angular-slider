@@ -7,6 +7,6 @@ export class CustomRangeData {
   };
 
   static customFixedRange: CustomFixedRange = {
-    values: [1.99, 5.99, 10.99, 30.99, 50.99, 70.99]
+    valores: [1.99, 5.99, 10.99, 30.99, 50.99, 70.99]
   };
 }

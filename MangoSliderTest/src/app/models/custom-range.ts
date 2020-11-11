@@ -4,6 +4,5 @@ export interface CustomNormalRange {
 }
 
 export interface CustomFixedRange {
-  values: number[];
+  valores: number[];
 }
-

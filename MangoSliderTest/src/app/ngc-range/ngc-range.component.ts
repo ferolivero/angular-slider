@@ -404,8 +404,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.vistaValorInferior = this.modelValueToViewValue(valoresNormalizados.valor);
     this.vistaValorSuperior = this.modelValueToViewValue(valoresNormalizados.valorSuperior);
 
-    this.actualizarDeslizableInferior(this.valueToPosition(this.vistaValorInferior));
-    this.actualizarDeslizableSuperior(this.valueToPosition(this.vistaValorSuperior));
+    this.actualizarDeslizableInferior(this.valorAPosicion(this.vistaValorInferior));
+    this.actualizarDeslizableSuperior(this.valorAPosicion(this.vistaValorSuperior));
     this.updateSelectionBar();
 
     // At the end, we need to communicate the model change to the outputs as well
@@ -471,8 +471,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     }
 
     if (this.configuracionDefault.enforceStep) {
-      inputNormalizado.valor = this.roundStep(inputNormalizado.valor);
-      inputNormalizado.valorSuperior = this.roundStep(inputNormalizado.valorSuperior);
+      inputNormalizado.valor = this.redondearNodo(inputNormalizado.valor);
+      inputNormalizado.valorSuperior = this.redondearNodo(inputNormalizado.valorSuperior);
     }
 
     if (this.configuracionDefault.enforceRange) {
@@ -556,10 +556,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       this.aplicarConfiguracionArrayNodos();
     } else {
       this.aplicarConfiguracionTopes();
-    }
-
-    if (this.configuracionDefault.logScale && this.configuracionDefault.limiteInferior === 0) {
-      throw Error("Can't use floor=0 with logarithmic scale");
     }
   }
 
@@ -652,8 +648,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   }
 
   private inicializarDeslizables(): void {
-    this.actualizarDeslizableInferior(this.valueToPosition(this.vistaValorInferior));
-    this.actualizarDeslizableSuperior(this.valueToPosition(this.vistaValorSuperior));
+    this.actualizarDeslizableInferior(this.valorAPosicion(this.vistaValorInferior));
+    this.actualizarDeslizableSuperior(this.valorAPosicion(this.vistaValorSuperior));
     this.updateSelectionBar();
   }
 
@@ -729,10 +725,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     const nearHandlePos: number = newPos - labelDimension / 2 + this.handleHalfDimension;
     const endOfBarPos: number = this.fullBarElement.dimension - labelDimension;
 
-    if (!this.configuracionDefault.boundPointerLabels) {
-      return nearHandlePos;
-    }
-
     if (labelType === TipoPunto.Max) {
       return Math.min(nearHandlePos, endOfBarPos);
     } else {
@@ -782,28 +774,24 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   }
 
   // Round value to step and precision based on minValue
-  private roundStep(value: number, customStep?: number): number {
-    const step: number = !ValoresHelper.isNullOrUndefined(customStep)
-      ? customStep
-      : this.configuracionDefault.nodo;
-    let steppedDifference: number = MathHelper.roundToPrecisionLimit(
-      (value - this.configuracionDefault.limiteInferior) / step,
+  private redondearNodo(value: number): number {
+    let diferenciaNodo: number = MathHelper.roundToPrecisionLimit(
+      (value - this.configuracionDefault.limiteInferior) / this.configuracionDefault.nodo,
       this.configuracionDefault.precisionLimit
     );
-    steppedDifference = Math.round(steppedDifference) * step;
+
+    diferenciaNodo = Math.round(diferenciaNodo) * this.configuracionDefault.nodo;
     return MathHelper.roundToPrecisionLimit(
-      this.configuracionDefault.limiteInferior + steppedDifference,
+      this.configuracionDefault.limiteInferior + diferenciaNodo,
       this.configuracionDefault.precisionLimit
     );
   }
 
   // Translate value to pixel position
-  private valueToPosition(val: number): number {
+  private valorAPosicion(val: number): number {
     let fn: ValorAPosicionFunction = ValoresHelper.linearValueToPosition;
     if (!ValoresHelper.isNullOrUndefined(this.configuracionDefault.customValueToPosition)) {
       fn = this.configuracionDefault.customValueToPosition;
-    } else if (this.configuracionDefault.logScale) {
-      fn = ValoresHelper.logValueToPosition;
     }
 
     val = MathHelper.clampToRange(
@@ -828,8 +816,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     let fn: PosicionAValorFunction = ValoresHelper.linearPositionToValue;
     if (!ValoresHelper.isNullOrUndefined(this.configuracionDefault.customPositionToValue)) {
       fn = this.configuracionDefault.customPositionToValue;
-    } else if (this.configuracionDefault.logScale) {
-      fn = ValoresHelper.logPositionToValue;
     }
     const value: number = fn(
       percent,
@@ -967,7 +953,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       newValue = ceilValue;
     } else {
       newValue = this.positionToValue(newPos);
-      newValue = this.roundStep(newValue);
+      newValue = this.redondearNodo(newValue);
     }
     this.positionTrackingHandle(newValue);
   }
@@ -986,7 +972,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.userChangeEnd.emit(this.getSliderChange());
   }
 
-  /** Get min value depending on whether the newPos is outOfBounds above or below the bar and rightToLeft */
+  /** Get min value depending on whether the newPos is outOfBounds above or below the bar */
   private getMinValue(newPos: number, outOfBounds: boolean, isAbove: boolean): number {
     let value: number = null;
 
@@ -999,10 +985,10 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     } else {
       value = this.positionToValue(newPos - this.deslizable.limiteInferior);
     }
-    return this.roundStep(value);
+    return this.redondearNodo(value);
   }
 
-  /** Get max value depending on whether the newPos is outOfBounds above or below the bar and rightToLeft */
+  /** Get max value depending on whether the newPos is outOfBounds above or below the bar */
   private getMaxValue(newPos: number, outOfBounds: boolean, isAbove: boolean): number {
     let value: number = null;
 
@@ -1016,7 +1002,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       value = this.positionToValue(newPos - this.deslizable.limiteInferior) + this.deslizable.diferencia;
     }
 
-    return this.roundStep(value);
+    return this.redondearNodo(value);
   }
 
   private onDragMove(event?: MouseEvent): void {
@@ -1057,8 +1043,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.vistaValorInferior = newMinValue;
     this.vistaValorSuperior = newMaxValue;
     this.aplicarCambiosAlModelo();
-    this.actualizarDeslizables(TipoPunto.Min, this.valueToPosition(newMinValue));
-    this.actualizarDeslizables(TipoPunto.Max, this.valueToPosition(newMaxValue));
+    this.actualizarDeslizables(TipoPunto.Min, this.valorAPosicion(newMinValue));
+    this.actualizarDeslizables(TipoPunto.Max, this.valorAPosicion(newMaxValue));
   }
 
   // Set the new value and position to the current tracking handle
@@ -1095,7 +1081,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         this.vistaValorSuperior = newValue;
         this.aplicarCambiosAlModelo();
       }
-      this.actualizarDeslizables(this.tipoPuntoActivo, this.valueToPosition(newValue));
+      this.actualizarDeslizables(this.tipoPuntoActivo, this.valorAPosicion(newValue));
     }
   }
 

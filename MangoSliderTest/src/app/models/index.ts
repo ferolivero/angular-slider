@@ -2,7 +2,7 @@ export { Config } from './config';
 export { CustomFixedRange, CustomNormalRange } from './custom-range';
 export { Deslizable } from './deslizable';
 export { EventListener } from './event-listener';
-export { ObtenerLabel, PosicionAValorFunction, TranslateFunction, ValorAPosicionFunction } from './functions';
+export { PosicionAValorFunction, TranslateFunction, ValorAPosicionFunction } from './functions';
 export { SliderChange } from './slider-change';
 export { SliderNodo } from './slider-nodo';
 export { InputModelChange, ModelChange, OutputModelChange, SlideValores } from './slider-valores';
