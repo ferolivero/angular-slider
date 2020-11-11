@@ -64,7 +64,7 @@ export class CustomRangeElementDirective {
   }
 
   // Calculate element's width/height depending on whether slider is horizontal or vertical
-  calculateDimension(): void {
+  calcularDimension(): void {
     const val: ClientRect = this.getBoundingClientRect();
     this._dimension = (val.right - val.left) * this.scale;
   }

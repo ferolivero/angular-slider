@@ -11,15 +11,15 @@ import { SliderNodo } from './slider-nodo';
 export class Config {
   /** Minimum value for a slider.
     Not applicable when using stepsArray. */
-  floor?: number = 0;
+  limiteInferior?: number = 0;
 
   /** Maximum value for a slider.
     Not applicable when using stepsArray. */
-  ceil?: number = null;
+  limiteSuperior?: number = null;
 
   /** Step between each value.
     Not applicable when using stepsArray. */
-  step?: number = 1;
+  nodo?: number = 1;
 
   /** The minimum range authorized on the slider.
     Applies to range slider only.
@@ -83,14 +83,8 @@ export class Config {
     on the left/right (top/bottom for vertical range slider) of selection bar between the handles. */
   showOuterSelectionBars?: boolean = false;
 
-  /** Set to true to hide pointer labels */
-  hidePointerLabels?: boolean = false;
-
   /** Set to true to hide min / max labels  */
   hideLimitLabels?: boolean = false;
-
-  /** Set to false to disable the auto-hiding behavior of the limit labels. */
-  autoHideLimitLabels?: boolean = true;
 
   /** Throttle interval for mouse events in milliseconds.
    * This is provided to avoid a flood of events when moving the slider with mouse. */
