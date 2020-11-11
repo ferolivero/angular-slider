@@ -3,16 +3,17 @@
     {{titulo}}
   </div>
 
-  <!-- <div class='card-body' *ngIf="vm$ | async as vm">
-    <div class='list-group'>
-      <button type='button' class='list-group-item' *ngFor='let product of vm.products'
-        [ngClass]="{'active': product?.id === vm.productId}" (click)='onSelected(product.id)'>
-        {{ product.productName }} ({{ product.category }})
-      </button>
+  <div class="card-body" *ngIf="fixedData">
+    <div class="container">
+      <div class="row justify-content-between">
+        <div class="col-4">
+          <ngc-range [values]="fixedData.valores" [type]="'fixed'"> </ngc-range>
+        </div>
+      </div>
     </div>
-  </div> -->
+  </div>
 </div>
 
 <div class="alert alert-danger" *ngIf="errorMessage$ | async as errorMessage">
-  {{errorMessage}}
+  {{ errorMessage }}
 </div>

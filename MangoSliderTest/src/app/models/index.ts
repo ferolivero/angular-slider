@@ -4,7 +4,6 @@ export { Deslizable } from './deslizable';
 export { EventListener } from './event-listener';
 export { PosicionAValorFunction, TranslateFunction, ValorAPosicionFunction } from './functions';
 export { SliderChange } from './slider-change';
-export { SliderNodo } from './slider-nodo';
 export { InputModelChange, ModelChange, OutputModelChange, SlideValores } from './slider-valores';
 export { TipoLabel } from './tipo-label';
 export { TipoPunto } from './tipo-punto';

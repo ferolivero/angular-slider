@@ -8,16 +8,13 @@ import {
   HostBinding,
   HostListener,
   Input,
-  OnChanges,
   OnDestroy,
   OnInit,
   Output,
   Renderer2,
-  SimpleChanges,
   TemplateRef,
   ViewChild
 } from '@angular/core';
-import { ControlValueAccessor } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, tap, throttleTime } from 'rxjs/operators';
 import { CustomRangeElementDirective } from '../directives/custom-range-element.directive';
@@ -31,7 +28,6 @@ import {
   OutputModelChange,
   PosicionAValorFunction,
   SliderChange,
-  SliderNodo,
   SlideValores,
   TipoLabel,
   TipoPunto,
@@ -46,10 +42,17 @@ import { CustomRangeLabelDirective } from './../directives/custom-range-label.di
   styleUrls: ['./ngc-range.component.scss'],
   host: { class: 'ngx-slider' }
 })
-export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy, ControlValueAccessor {
+export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
   // Model for low value of slider. For simple slider, this is the only input. For range slider, this is the low value.
   @Input()
   public valor: number = null;
+
+  @Input()
+  public type: string = 'normal';
+
+  @Input()
+  public values: number[] = null;
+
   // Output for low value slider to support two-way bindings
   @Output()
   public valueChange: EventEmitter<number> = new EventEmitter();
@@ -160,9 +163,9 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   private onMoveEventListener: EventListener = null;
   private onEndEventListener: EventListener = null;
 
-  // Callbacks for reactive forms support
-  private onTouchedCallback: (value: any) => void = null;
-  private onChangeCallback: (value: any) => void = null;
+  // // Callbacks for reactive forms support
+  // private onTouchedCallback: (value: any) => void = null;
+  // private onChangeCallback: (value: any) => void = null;
 
   public constructor(
     private renderer: Renderer2,
@@ -174,8 +177,14 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   // OnInit interface
   public ngOnInit(): void {
-    this.configuracionDefault.limiteInferior = this.min;
-    this.configuracionDefault.limiteSuperior = this.max;
+    if (this.type === 'fixed') {
+      this.configuracionDefault.stepsArray = this.values;
+      this.valorSuperior = this.values[this.values.length - 1];
+    } else {
+      this.configuracionDefault.limiteInferior = this.min;
+      this.configuracionDefault.limiteSuperior = this.max;
+      this.valorSuperior = this.max;
+    }
   }
 
   // AfterViewInit interface
@@ -204,27 +213,6 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     }
   }
 
-  // OnChanges interface
-  public ngOnChanges(changes: SimpleChanges): void {
-    // Always apply options first
-    if (!UtilsHelper.esIndefinidoONulo(changes.options)) {
-      this.onChangeOptions();
-    }
-
-    // Then value changes
-    if (
-      !UtilsHelper.esIndefinidoONulo(changes.value) ||
-      !UtilsHelper.esIndefinidoONulo(changes.valorSuperior)
-    ) {
-      this.inputModelChangeSubject.next({
-        valor: this.valor,
-        valorSuperior: this.valorSuperior,
-        forceChange: false,
-        internalChange: false
-      });
-    }
-  }
-
   // OnDestroy interface
   public ngOnDestroy(): void {
     this.unbindEvents();
@@ -232,33 +220,33 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.unsubscribeOutputModelChangeSubject();
   }
 
-  // ControlValueAccessor interface
-  public writeValue(obj: any): void {
-    if (obj instanceof Array) {
-      this.valor = obj[0];
-      this.valorSuperior = obj[1];
-    } else {
-      this.valor = obj;
-    }
+  // // ControlValueAccessor interface
+  // public writeValue(obj: any): void {
+  //   if (obj instanceof Array) {
+  //     this.valor = obj[0];
+  //     this.valorSuperior = obj[1];
+  //   } else {
+  //     this.valor = obj;
+  //   }
 
-    // ngOnChanges() is not called in this instance, so we need to communicate the change manually
-    this.inputModelChangeSubject.next({
-      valor: this.valor,
-      valorSuperior: this.valorSuperior,
-      forceChange: false,
-      internalChange: false
-    });
-  }
+  //   // ngOnChanges() is not called in this instance, so we need to communicate the change manually
+  //   this.inputModelChangeSubject.next({
+  //     valor: this.valor,
+  //     valorSuperior: this.valorSuperior,
+  //     forceChange: false,
+  //     internalChange: false
+  //   });
+  // }
 
-  // ControlValueAccessor interface
-  public registerOnChange(onChangeCallback: any): void {
-    this.onChangeCallback = onChangeCallback;
-  }
+  // // ControlValueAccessor interface
+  // public registerOnChange(onChangeCallback: any): void {
+  //   this.onChangeCallback = onChangeCallback;
+  // }
 
-  // ControlValueAccessor interface
-  public registerOnTouched(onTouchedCallback: any): void {
-    this.onTouchedCallback = onTouchedCallback;
-  }
+  // // ControlValueAccessor interface
+  // public registerOnTouched(onTouchedCallback: any): void {
+  //   this.onTouchedCallback = onTouchedCallback;
+  // }
 
   @HostListener('window:resize', ['$event'])
   public onResize(event: any): void {
@@ -361,8 +349,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   }
 
   private obtenerValorNodo(sliderValor: number): number {
-    const nodo: SliderNodo = this.configuracionDefault.stepsArray[sliderValor];
-    return !UtilsHelper.esIndefinidoONulo(nodo) ? nodo.valor : NaN;
+    const nodo: number = this.configuracionDefault.stepsArray[sliderValor];
+    return !UtilsHelper.esIndefinidoONulo(nodo) ? nodo : NaN;
   }
 
   private aplicarCambiosAlModelo(): void {
@@ -422,12 +410,12 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       this.valueChange.emit(modelChange.valor);
       this.valorSuperiorChange.emit(modelChange.valorSuperior);
 
-      if (!UtilsHelper.esIndefinidoONulo(this.onChangeCallback)) {
-        this.onChangeCallback([modelChange.valor, modelChange.valorSuperior]);
-      }
-      if (!UtilsHelper.esIndefinidoONulo(this.onTouchedCallback)) {
-        this.onTouchedCallback([modelChange.valor, modelChange.valorSuperior]);
-      }
+      // if (!UtilsHelper.esIndefinidoONulo(this.onChangeCallback)) {
+      //   this.onChangeCallback([modelChange.valor, modelChange.valorSuperior]);
+      // }
+      // if (!UtilsHelper.esIndefinidoONulo(this.onTouchedCallback)) {
+      //   this.onTouchedCallback([modelChange.valor, modelChange.valorSuperior]);
+      // }
     };
 
     if (modelChange.userEventInitiated) {
@@ -456,13 +444,13 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnChanges, OnDe
           inputNormalizado.valor,
           this.configuracionDefault.stepsArray
         );
-        inputNormalizado.valor = this.configuracionDefault.stepsArray[valueIndex].valor;
+        inputNormalizado.valor = this.configuracionDefault.stepsArray[valueIndex];
 
         const valorSuperiorIndex: number = UtilsHelper.findStepIndex(
           inputNormalizado.valorSuperior,
           this.configuracionDefault.stepsArray
         );
-        inputNormalizado.valorSuperior = this.configuracionDefault.stepsArray[valorSuperiorIndex].valor;
+        inputNormalizado.valorSuperior = this.configuracionDefault.stepsArray[valorSuperiorIndex];
       }
 
       return inputNormalizado;

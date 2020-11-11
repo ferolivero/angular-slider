@@ -1,5 +1,3 @@
-import { SliderNodo } from '../models/slider-nodo';
-
 /**
  * Funciones para manejar los valores
  */
@@ -17,10 +15,8 @@ export class UtilsHelper {
     return percent * (maxVal - minVal) + minVal;
   }
 
-  static findStepIndex(modelValue: number, stepsArray: SliderNodo[]): number {
-    const differences: number[] = stepsArray.map((step: SliderNodo): number =>
-      Math.abs(modelValue - step.valor)
-    );
+  static findStepIndex(modelValue: number, stepsArray: number[]): number {
+    const differences: number[] = stepsArray.map((step: number): number => Math.abs(modelValue - step));
 
     let minDifferenceIndex: number = 0;
     for (let index: number = 0; index < stepsArray.length; index++) {

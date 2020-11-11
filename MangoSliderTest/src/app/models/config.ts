@@ -1,6 +1,5 @@
 import { TranslateFunction } from '.';
 import { PosicionAValorFunction, ValorAPosicionFunction } from './functions';
-import { SliderNodo } from './slider-nodo';
 
 /** Slider options */
 export class Config {
@@ -35,7 +34,7 @@ export class Config {
      in the stepsArray.
      They can also be bound to the index of the selected item by setting the bindIndexForStepsArray
      option to true. */
-  stepsArray?: SliderNodo[] = null;
+  stepsArray?: number[] = null;
 
   /** Set to true to bind the index of the selected item to value model and valueHigh model. */
   bindIndexForStepsArray?: boolean = false;

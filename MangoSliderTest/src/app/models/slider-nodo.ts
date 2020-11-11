@@ -1,4 +1,3 @@
-export interface SliderNodo {
-  valor: number;
-  label?: string;
-}
+// export interface SliderNodo {
+//   valor: number;
+// }

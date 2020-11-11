@@ -12,28 +12,9 @@ export class Exercise2Component implements OnInit {
   titulo = 'Ejercicio 2 - Mango Frontend Test';
   private errorMessageSubject = new Subject<string>();
   errorMessage$ = this.errorMessageSubject.asObservable();
-
-  // Products with their categories
-  fixedRangeData: CustomFixedRange;
-
-  // Selected product to highlight the entry
-  // selectedProduct$ = this.exerciseService.selectedProduct$;
-
-  // Combine all streams for the view
-  // vm$ = combineLatest([
-  //   this.products$,
-  //   this.selectedProduct$
-  // ])
-  //   .pipe(
-  //     map(([products, product]: [Product[], Product]) =>
-  //       ({ products, productId: product ? product.id : 0 }))
-  //   );
+  fixedData: CustomFixedRange;
 
   constructor(private exerciseService: ExerciseService) {}
-
-  // onSelected(productId: number): void {
-  //   this.exerciseService.selectedProductChanged(productId);
-  // }
 
   ngOnInit(): void {
     this.exerciseService.customFixedRangeData$
@@ -45,7 +26,7 @@ export class Exercise2Component implements OnInit {
       )
       .subscribe((data) => {
         console.log(data);
-        this.fixedRangeData = data;
+        this.fixedData = data;
       });
   }
 }

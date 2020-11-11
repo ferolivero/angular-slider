@@ -3,12 +3,11 @@
     {{titulo}}
   </div>
 
-  <div class="card-body" *ngIf="customNormalRangeData">
+  <div class="card-body" *ngIf="data">
     <div class="container">
       <div class="row justify-content-between">
         <div class="col-4">
-          <ngc-range [min]="customNormalRangeData.min" [max]="customNormalRangeData.max"
-            [valorSuperior]="customNormalRangeData.max">
+          <ngc-range [min]="data.min" [max]="data.max">
           </ngc-range>
         </div>
       </div>

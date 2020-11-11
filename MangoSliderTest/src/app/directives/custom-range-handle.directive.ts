@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Renderer2, HostBinding, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, Directive, ElementRef, HostBinding, Renderer2 } from '@angular/core';
 import { CustomRangeElementDirective } from './custom-range-element.directive';
 
 @Directive({
