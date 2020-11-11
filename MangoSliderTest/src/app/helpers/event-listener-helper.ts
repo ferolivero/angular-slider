@@ -4,9 +4,6 @@ import { tap, throttleTime } from 'rxjs/operators';
 import { EventListener } from '../models/event-listener';
 import { UtilsHelper } from './utils-helper';
 
-/**
- * Helper class to attach event listeners to DOM elements with debounce support using rxjs
- */
 export class EventosHelper {
   constructor(private renderer: Renderer2) {}
 

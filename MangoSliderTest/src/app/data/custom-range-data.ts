@@ -2,7 +2,7 @@ import { CustomFixedRange, CustomNormalRange } from '../models';
 
 export class CustomRangeData {
   static customNormalRange: CustomNormalRange = {
-    min: 15,
+    min: 1,
     max: 100
   };
 

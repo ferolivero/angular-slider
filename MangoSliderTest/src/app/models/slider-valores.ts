@@ -1,10 +1,10 @@
 import { UtilsHelper } from '../helpers';
 
-export class SlideValores {
+export class SliderValores {
   valor: number;
   valorSuperior: number;
 
-  public static compare(x?: SlideValores, y?: SlideValores): boolean {
+  public static compare(x?: SliderValores, y?: SliderValores): boolean {
     if (UtilsHelper.esIndefinidoONulo(x) && UtilsHelper.esIndefinidoONulo(y)) {
       return false;
     }
@@ -15,7 +15,7 @@ export class SlideValores {
   }
 }
 
-export class ModelChange extends SlideValores {
+export class ModelChange extends SliderValores {
   // Flag used to by-pass distinctUntilChanged() filter on input values
   // (sometimes there is a need to pass values through even though the model values have not changed)
   forceChange: boolean;

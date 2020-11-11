@@ -1,17 +1,15 @@
-<span customRangeElement #fullBar [class.ngx-slider-transparent]="fullBarTransparentClass"
-    class="ngx-slider-span ngx-slider-bar-wrapper ngx-slider-full-bar">
+<span customRangeElement #fullBar class="ngx-slider-span ngx-slider-bar-wrapper ngx-slider-full-bar">
     <span class="ngx-slider-span ngx-slider-bar"></span>
 </span>
 
 <span customRangeElement #selectionBar class="ngx-slider-span ngx-slider-bar-wrapper ngx-slider-selection-bar">
-    <span class="ngx-slider-span ngx-slider-bar ngx-slider-selection" [ngStyle]="barStyle"></span>
+    <span class="ngx-slider-span ngx-slider-bar ngx-slider-selection"></span>
 </span>
 
-<span customRangeHandle #minHandle class="ngx-slider-span ngx-slider-pointer ngx-slider-pointer-min"
-    [ngStyle]=minPointerStyle></span>
+<span customRangeHandle #minHandle class="ngx-slider-span ngx-slider-pointer ngx-slider-pointer-min"></span>
 <!-- // 5 High slider handle -->
 <span customRangeHandle #maxHandle [style.display]="'inherit'"
-    class="ngx-slider-span ngx-slider-pointer ngx-slider-pointer-max" [ngStyle]=maxPointerStyle></span>
+    class="ngx-slider-span ngx-slider-pointer ngx-slider-pointer-max"></span>
 
 <!-- // 6 Floor label -->
 <span customRangeLabel #floorLabel class="ngx-slider-span ngx-slider-bubble ngx-slider-limit ngx-slider-floor"></span>

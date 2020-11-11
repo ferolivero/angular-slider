@@ -1,6 +1,5 @@
 import { ChangeDetectorRef, Directive, ElementRef, HostBinding, Renderer2 } from '@angular/core';
-import { UtilsHelper } from '../helpers';
-import { EventosHelper } from '../helpers/event-listener-helper';
+import { EventosHelper, UtilsHelper } from '../helpers';
 import { EventListener } from '../models';
 
 @Directive({ selector: '[customRangeElement]' })

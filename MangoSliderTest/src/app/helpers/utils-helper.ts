@@ -1,6 +1,3 @@
-/**
- * Funciones para manejar los valores
- */
 export class UtilsHelper {
   static esIndefinidoONulo(value: any): boolean {
     return value === undefined || value === null;
@@ -15,11 +12,11 @@ export class UtilsHelper {
     return percent * (maxVal - minVal) + minVal;
   }
 
-  static findStepIndex(modelValue: number, stepsArray: number[]): number {
-    const differences: number[] = stepsArray.map((step: number): number => Math.abs(modelValue - step));
+  static obtenerIndiceNodo(modelValue: number, valoresPosibles: number[]): number {
+    const differences: number[] = valoresPosibles.map((step: number): number => Math.abs(modelValue - step));
 
     let minDifferenceIndex: number = 0;
-    for (let index: number = 0; index < stepsArray.length; index++) {
+    for (let index: number = 0; index < valoresPosibles.length; index++) {
       if (
         differences[index] !== differences[minDifferenceIndex] &&
         differences[index] < differences[minDifferenceIndex]

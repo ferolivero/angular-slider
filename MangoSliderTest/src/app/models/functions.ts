@@ -1,4 +1,4 @@
-import { TipoLabel } from './tipo-label';
+import { TipoLabel } from './tipos';
 
 /** Function to translate label value into text */
 export type TranslateFunction = (value: number, label: TipoLabel) => string;

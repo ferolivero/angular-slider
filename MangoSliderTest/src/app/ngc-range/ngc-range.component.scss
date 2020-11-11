@@ -50,10 +50,6 @@
       @include rounded($barDimension / 2);
     }
 
-    .ngx-slider-bar-wrapper.ngx-slider-transparent .ngx-slider-bar {
-      background: transparent;
-    }
-
     .ngx-slider-selection {
       z-index: 2;
       background: $barFillColor;

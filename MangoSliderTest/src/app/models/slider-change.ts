@@ -1,4 +1,4 @@
-import { TipoPunto } from './tipo-punto';
+import { TipoPunto } from './tipos';
 
 export class SliderChange {
   valor: number;

@@ -1,5 +1,4 @@
 import { TranslateFunction } from '.';
-import { PosicionAValorFunction, ValorAPosicionFunction } from './functions';
 
 /** Slider options */
 export class Config {
@@ -27,17 +26,10 @@ export class Config {
       on the slider. */
   translate?: TranslateFunction = null;
 
-  /** If you want to display a slider with non linear/number steps.
-     Just pass an array with each slider value and that's it; the floor, ceil and step settings
-     of the slider will be computed automatically.
-     By default, the value model and valueHigh model values will be the value of the selected item
-     in the stepsArray.
-     They can also be bound to the index of the selected item by setting the bindIndexForStepsArray
-     option to true. */
-  stepsArray?: number[] = null;
+  valoresPosibles?: number[] = null;
 
-  /** Set to true to bind the index of the selected item to value model and valueHigh model. */
-  bindIndexForStepsArray?: boolean = false;
+  // /** Set to true to bind the index of the selected item to value model and valueHigh model. */
+  // bindIndexForStepsArray?: boolean = false;
 
   /** Set to true to always show the selection bar before the slider handle. */
   showSelectionBar?: boolean = false;
@@ -48,13 +40,6 @@ export class Config {
   /**  Set a number to draw the selection bar between this value and the slider handle.
     When using stepsArray, expressed as index into stepsArray. */
   showSelectionBarFromValue?: number = null;
-
-  /**  Only for range slider. Set to true to visualize in different colour the areas
-    on the left/right (top/bottom for vertical range slider) of selection bar between the handles. */
-  showOuterSelectionBars?: boolean = false;
-
-  /** Set to true to hide min / max labels  */
-  // hideLimitLabels?: boolean = true;
 
   /** Throttle interval for mouse events in milliseconds.
    * This is provided to avoid a flood of events when moving the slider with mouse. */
@@ -102,36 +87,13 @@ export class Config {
     so that the slider is rendered properly and the events are handled correctly. */
   scale?: number = 1;
 
-  /** Set to true to force the value(s) to be rounded to the step, even when modified from the outside.
-    When set to false, if the model values are modified from outside the slider, they are not rounded
-    and can be between two steps. */
-  enforceStep?: boolean = true;
-
   /** Set to true to force the value(s) to be normalised to allowed range (floor to ceil), even when modified from the outside.
     When set to false, if the model values are modified from outside the slider, and they are outside allowed range,
     the slider may be rendered incorrectly. However, setting this to false may be useful if you want to perform custom normalisation. */
-  enforceRange?: boolean = true;
-
-  /** Set to true to force the value(s) to be rounded to the nearest step value, even when modified from the outside.
-    When set to false, if the model values are modified from outside the slider, and they are outside allowed range,
-    the slider may be rendered incorrectly. However, setting this to false may be useful if you want to perform custom normalisation. */
-  enforceStepsArray?: boolean = true;
-
-  /** Function that returns the position on the slider for a given value.
-    The position must be a percentage between 0 and 1.
-    The function should be monotonically increasing or decreasing; otherwise the slider may behave incorrectly. */
-  customValueToPosition?: ValorAPosicionFunction = null;
-
-  /** Function that returns the value for a given position on the slider.
-    The position is a percentage between 0 and 1.
-    The function should be monotonically increasing or decreasing; otherwise the slider may behave incorrectly. */
-  customPositionToValue?: PosicionAValorFunction = null;
+  // enforceRange?: boolean = false;
 
   /** Precision limit for calculated values.
     Values used in calculations will be rounded to this number of significant digits
     to prevent accumulating small floating-point errors. */
   precisionLimit?: number = 12;
-
-  /** Enable/disable CSS animations */
-  // animate?: boolean = false;
 }
