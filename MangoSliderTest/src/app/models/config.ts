@@ -1,10 +1,5 @@
-import {
-  GetLegendFunction,
-  TipoPunto,
-  PositionToValueFunction,
-  TranslateFunction,
-  ValueToPositionFunction
-} from '.';
+import { TranslateFunction } from '.';
+import { ObtenerLabel, PosicionAValorFunction, ValorAPosicionFunction } from './functions';
 import { SliderNodo } from './slider-nodo';
 
 /** Slider options */
@@ -55,7 +50,7 @@ export class Config {
      If the returned value is null, then no legend is displayed under
      the corresponding tick.You can also directly provide the legend values
      in the stepsArray option. */
-  getLegend?: GetLegendFunction = null;
+  obtenerLabel?: ObtenerLabel = null;
 
   /** If you want to display a slider with non linear/number steps.
      Just pass an array with each slider value and that's it; the floor, ceil and step settings
@@ -133,25 +128,8 @@ export class Config {
     Changing this value at runtime is not currently supported. */
   // vertical?: boolean = false;
 
-  /** Function that returns the current color of the selection bar.
-    If your color won't change, don't use this option but set it through CSS.
-    If the returned color depends on a model value (either value or valueHigh),
-    you should use the argument passed to the function.
-    Indeed, when the function is called, there is no certainty that the model
-    has already been updated.*/
-  getSelectionBarColor?: (minValue: number, maxValue?: number) => string = null;
-
   /** Function that returns the color of a tick. showTicks must be enabled. */
   getTickColor?: (value: number) => string = null;
-
-  /** Function that returns the current color of a pointer.
-    If your color won't change, don't use this option but set it through CSS.
-    If the returned color depends on a model value (either value or valueHigh),
-    you should use the argument passed to the function.
-    Indeed, when the function is called, there is no certainty that the model has already been updated.
-    To handle range slider pointers independently, you should evaluate pointerType within the given
-    function where "min" stands for value model and "max" for valueHigh model values. */
-  getPointerColor?: (value: number, pointerType: TipoPunto) => string = null;
 
   /** If you display the slider in an element that uses transform: scale(0.5), set the scale value to 2
     so that the slider is rendered properly and the events are handled correctly. */
@@ -188,12 +166,12 @@ export class Config {
   /** Function that returns the position on the slider for a given value.
     The position must be a percentage between 0 and 1.
     The function should be monotonically increasing or decreasing; otherwise the slider may behave incorrectly. */
-  customValueToPosition?: ValueToPositionFunction = null;
+  customValueToPosition?: ValorAPosicionFunction = null;
 
   /** Function that returns the value for a given position on the slider.
     The position is a percentage between 0 and 1.
     The function should be monotonically increasing or decreasing; otherwise the slider may behave incorrectly. */
-  customPositionToValue?: PositionToValueFunction = null;
+  customPositionToValue?: PosicionAValorFunction = null;
 
   /** Precision limit for calculated values.
     Values used in calculations will be rounded to this number of significant digits
@@ -202,7 +180,4 @@ export class Config {
 
   /** Enable/disable CSS animations */
   animate?: boolean = true;
-
-  /** Enable/disable CSS animations while moving the slider */
-  animateOnMove?: boolean = false;
 }
