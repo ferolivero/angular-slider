@@ -48,7 +48,7 @@ export class ValoresHelper {
 
   static findStepIndex(modelValue: number, stepsArray: SliderNodo[]): number {
     const differences: number[] = stepsArray.map((step: SliderNodo): number =>
-      Math.abs(modelValue - step.value)
+      Math.abs(modelValue - step.valor)
     );
 
     let minDifferenceIndex: number = 0;

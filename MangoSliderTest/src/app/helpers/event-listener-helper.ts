@@ -11,14 +11,14 @@ export class EventListenerHelper {
   constructor(private renderer: Renderer2) {}
 
   public detachEventListener(eventListener: EventListener): void {
-    if (!ValoresHelper.isNullOrUndefined(eventListener.eventsSubscription)) {
-      eventListener.eventsSubscription.unsubscribe();
-      eventListener.eventsSubscription = null;
+    if (!ValoresHelper.isNullOrUndefined(eventListener.eventosSubscription)) {
+      eventListener.eventosSubscription.unsubscribe();
+      eventListener.eventosSubscription = null;
     }
 
-    if (!ValoresHelper.isNullOrUndefined(eventListener.events)) {
-      eventListener.events.complete();
-      eventListener.events = null;
+    if (!ValoresHelper.isNullOrUndefined(eventListener.eventos)) {
+      eventListener.eventos.complete();
+      eventListener.eventos = null;
     }
 
     if (!ValoresHelper.isNullOrUndefined(eventListener.teardownCallback)) {
@@ -34,16 +34,16 @@ export class EventListenerHelper {
     throttleInterval?: number
   ): EventListener {
     const listener: EventListener = new EventListener();
-    listener.eventName = eventName;
-    listener.events = new Subject<Event>();
+    listener.nombreEvento = eventName;
+    listener.eventos = new Subject<Event>();
 
     const observerCallback: (event: Event) => void = (event: Event): void => {
-      listener.events.next(event);
+      listener.eventos.next(event);
     };
 
     listener.teardownCallback = this.renderer.listen(nativeElement, eventName, observerCallback);
 
-    listener.eventsSubscription = listener.events
+    listener.eventosSubscription = listener.eventos
       .pipe(
         !ValoresHelper.isNullOrUndefined(throttleInterval)
           ? throttleTime(throttleInterval, undefined, { leading: true, trailing: true })

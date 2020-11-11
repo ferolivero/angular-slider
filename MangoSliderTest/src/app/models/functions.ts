@@ -1,7 +1,7 @@
-import { LabelType } from './label-type';
+import { TipoLabel } from './tipo-label';
 
 /** Function to translate label value into text */
-export type TranslateFunction = (value: number, label: LabelType) => string;
+export type TranslateFunction = (value: number, label: TipoLabel) => string;
 /** Function to combind */
 // export type CombineLabelsFunction = (minLabel: string, maxLabel: string) => string;
 /** Function to provide legend  */

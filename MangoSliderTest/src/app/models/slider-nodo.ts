@@ -1,4 +1,4 @@
 export interface SliderNodo {
-  value: number;
-  legend?: string;
+  valor: number;
+  label?: string;
 }

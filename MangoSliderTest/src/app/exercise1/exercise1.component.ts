@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { CustomNormalRange, Options } from '../models';
+import { CustomNormalRange } from '../models';
 import { ExerciseService } from '../shared/exercise.service';
 
 //import { ProductCategoryService } from '../product-categories/product-category.service';
@@ -19,10 +19,6 @@ export class Exercise1Component implements OnInit {
 
   min: number = 1;
   max: number = 8;
-  options: Options = {
-    floor: 0,
-    ceil: 10
-  };
 
   // Categories for drop down list
   // categories$ = this.productCategoryService.productCategories$.pipe(

@@ -97,8 +97,12 @@ export class CustomRangeElementDirective {
     let listenersToKeep: EventListener[];
     let listenersToRemove: EventListener[];
     if (!ValoresHelper.isNullOrUndefined(eventName)) {
-      listenersToKeep = this.eventListeners.filter((event: EventListener) => event.eventName !== eventName);
-      listenersToRemove = this.eventListeners.filter((event: EventListener) => event.eventName === eventName);
+      listenersToKeep = this.eventListeners.filter(
+        (event: EventListener) => event.nombreEvento !== eventName
+      );
+      listenersToRemove = this.eventListeners.filter(
+        (event: EventListener) => event.nombreEvento === eventName
+      );
     } else {
       listenersToKeep = [];
       listenersToRemove = this.eventListeners;

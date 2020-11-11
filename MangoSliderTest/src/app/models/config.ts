@@ -1,14 +1,14 @@
 import {
   GetLegendFunction,
-  PointerType,
+  TipoPunto,
   PositionToValueFunction,
   TranslateFunction,
   ValueToPositionFunction
 } from '.';
-import { CustomStepDefinition } from './custom-step-definition';
+import { SliderNodo } from './slider-nodo';
 
 /** Slider options */
-export class Options {
+export class Config {
   /** Minimum value for a slider.
     Not applicable when using stepsArray. */
   floor?: number = 0;
@@ -64,7 +64,7 @@ export class Options {
      in the stepsArray.
      They can also be bound to the index of the selected item by setting the bindIndexForStepsArray
      option to true. */
-  stepsArray?: CustomStepDefinition[] = null;
+  stepsArray?: SliderNodo[] = null;
 
   /** Set to true to bind the index of the selected item to value model and valueHigh model. */
   bindIndexForStepsArray?: boolean = false;
@@ -157,7 +157,7 @@ export class Options {
     Indeed, when the function is called, there is no certainty that the model has already been updated.
     To handle range slider pointers independently, you should evaluate pointerType within the given
     function where "min" stands for value model and "max" for valueHigh model values. */
-  getPointerColor?: (value: number, pointerType: PointerType) => string = null;
+  getPointerColor?: (value: number, pointerType: TipoPunto) => string = null;
 
   /** If you display the slider in an element that uses transform: scale(0.5), set the scale value to 2
     so that the slider is rendered properly and the events are handled correctly. */

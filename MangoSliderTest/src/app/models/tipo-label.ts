@@ -1,5 +1,5 @@
 /** Label type */
-export enum LabelType {
+export enum TipoLabel {
   /** Label above low pointer */
   Low,
   /** Label above high pointer */

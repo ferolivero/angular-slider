@@ -1,7 +1,7 @@
-import { PointerType } from './pointer-type';
+import { TipoPunto } from './tipo-punto';
 
 export class SliderChange {
-  value: number;
-  highValue?: number;
-  pointerType: PointerType;
+  valor: number;
+  valorSuperior?: number;
+  tipoPunto: TipoPunto;
 }
