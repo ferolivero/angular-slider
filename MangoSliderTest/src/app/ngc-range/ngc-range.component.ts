@@ -288,7 +288,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       return NaN;
     }
 
-    if (!UtilsHelper.esIndefinidoONulo(this.values)) {
+    if (this.type === TipoSlider.Fixed) {
       console.log(+modelValue);
       return UtilsHelper.obtenerIndiceNodo(+modelValue, this.values);
     }
@@ -297,7 +297,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   private aplicarValorModelo(viewValue: number): number {
-    if (!UtilsHelper.esIndefinidoONulo(this.values)) {
+    if (this.type === TipoSlider.Fixed) {
       console.log(+viewValue);
       return this.obtenerValorNodo(viewValue);
     }
@@ -335,6 +335,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   // Apply model change to the slider view
   private applyInputModelChange(modelChange: InputModelChange): void {
+    // console.log(modelChange);
     const valoresNormalizados: SliderValores = this.normalizarValores(modelChange);
 
     if (this.type === TipoSlider.Normal) {
@@ -356,9 +357,6 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     if (normalisationChange) {
       this.valor = valoresNormalizados.valor;
       this.valorSuperior = valoresNormalizados.valorSuperior;
-    } else {
-      console.log(modelChange);
-      console.log(valoresNormalizados);
     }
 
     this.vistaValorInferior = this.aplicarValorVista(valoresNormalizados.valor);
@@ -410,7 +408,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     inputNormalizado.valor = input.valor;
     inputNormalizado.valorSuperior = input.valorSuperior;
 
-    if (!UtilsHelper.esIndefinidoONulo(this.values)) {
+    if (this.type === TipoSlider.Fixed) {
       // When using steps array, only round to nearest step in the array
       // No other enforcement can be done, as the step array may be out of order, and that is perfectly fine
       const valueIndex: number = UtilsHelper.obtenerIndiceNodo(inputNormalizado.valor, this.values);
@@ -611,6 +609,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     );
 
     diferenciaNodo = Math.round(diferenciaNodo) * this.configuracion.nodo;
+    console.log({ diferenciaNodo });
     return UtilsHelper.roundToPrecisionLimit(
       this.configuracion.limiteInferior + diferenciaNodo,
       this.configuracion.precisionLimit
@@ -768,7 +767,10 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     if (this.type === TipoSlider.Normal) {
       this.valorEditable = !this.valorEditable;
       const element = this.renderer.selectRootElement('#valorElement');
-      setTimeout(() => element.focus(), 0);
+      setTimeout(() => {
+        element.focus();
+        element.select();
+      }, 0);
     }
   }
 
@@ -776,7 +778,10 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     if (this.type === TipoSlider.Normal) {
       this.valorSuperiorEditable = !this.valorSuperiorEditable;
       const element = this.renderer.selectRootElement('#valorSuperiorElement');
-      setTimeout(() => element.focus(), 0);
+      setTimeout(() => {
+        element.focus();
+        element.select();
+      }, 0);
     }
   }
 
