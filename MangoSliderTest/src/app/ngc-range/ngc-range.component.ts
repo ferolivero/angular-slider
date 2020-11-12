@@ -17,7 +17,7 @@ import {
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
-import { distinctUntilChanged, filter, tap, throttleTime } from 'rxjs/operators';
+import { distinctUntilChanged, filter, throttleTime } from 'rxjs/operators';
 import { CustomRangeElementDirective } from '../directives/custom-range-element.directive';
 import { EventosHelper, UtilsHelper } from '../helpers';
 import {
@@ -49,28 +49,23 @@ const NGX_SLIDER_CONTROL_VALUE_ACCESSOR: any = {
   providers: [NGX_SLIDER_CONTROL_VALUE_ACCESSOR]
 })
 export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy, ControlValueAccessor {
-  // Inputs
   @Input('ngModel') slideValores: number[];
   @Input() type: string = TipoSlider.Normal;
   @Input() min: number;
   @Input() max: number;
   @Input() values: number[] = null;
 
-  // Output for low value slider to support two-way bindings
   @Output()
   valueChange: EventEmitter<number> = new EventEmitter();
+  @Output()
+  valorSuperiorChange: EventEmitter<number> = new EventEmitter();
+  @Output()
+  rangeChange: EventEmitter<number[]> = new EventEmitter();
 
   valor: number = null;
   valorEditable = false;
   valorSuperior: number = null;
   valorSuperiorEditable = null;
-
-  // Output for high value slider to support two-way bindings
-  @Output()
-  valorSuperiorChange: EventEmitter<number> = new EventEmitter();
-
-  @Output()
-  rangeChange: EventEmitter<number[]> = new EventEmitter();
 
   // Set to true if init method already executed
   private initHasRun: boolean = false;
@@ -85,51 +80,32 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private outputModelChangeSubject: Subject<OutputModelChange> = new Subject<OutputModelChange>();
   private outputModelChangeSubscription: Subscription = null;
 
-  // Low value synced to model low value
   private vistaValorInferior: number = null;
-  // High value synced to model high value
   private vistaValorSuperior: number = null;
-  // Options synced to model options, based on defaults
+
   private configuracion: Config = new Config();
 
-  // Half of the width or height of the slider handles
   private handleHalfDimension: number = 0;
-  // Maximum position the slider handle can have
-  private maxHandlePosition: number = 0;
 
-  // Which handle is currently tracked for move events
-  private tipoPuntoActivo: TipoPunto = null;
-  // Values recorded when first dragging the bar
-  private deslizable: Deslizable = new Deslizable();
+  private deslizable = new Deslizable();
+  private maximaPosicionDeslizable: number = 0;
 
-  /* Slider DOM elements */
-  // The whole slider bar
+  tipoPuntoActivo: TipoPunto = null;
+
   @ViewChild('valorElement', { read: CustomRangeElementDirective })
   inputValorElement: CustomRangeElementDirective;
-
   @ViewChild('valorSuperiorElement', { read: CustomRangeElementDirective })
   inputValorSuperiorElement: CustomRangeElementDirective;
-
   @ViewChild('fullBar', { read: CustomRangeElementDirective })
   fullBarElement: CustomRangeElementDirective;
-
-  // Highlight between two handles
   @ViewChild('selectionBar', { read: CustomRangeElementDirective })
   selectionBarElement: CustomRangeElementDirective;
-
-  // Left slider handle
   @ViewChild('minHandle', { read: CustomRangeHandleDirective })
   minHandleElement: CustomRangeHandleDirective;
-
-  // Right slider handle
   @ViewChild('maxHandle', { read: CustomRangeHandleDirective })
   maxHandleElement: CustomRangeHandleDirective;
-
-  // Label above the low value
   @ViewChild('minHandleLabel', { read: CustomRangeLabelDirective })
   minHandleLabelElement: CustomRangeLabelDirective;
-
-  // Label above the high value
   @ViewChild('maxHandleLabel', { read: CustomRangeLabelDirective })
   maxHandleLabelElement: CustomRangeLabelDirective;
 
@@ -164,7 +140,6 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
-    // Then value changes
     if (
       !UtilsHelper.esIndefinidoONulo(changes.valor) ||
       !UtilsHelper.esIndefinidoONulo(changes.valorSuperior)
@@ -183,9 +158,6 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.aplicarConfiguracion();
     this.subscribeInputModelChangeSubject(this.configuracion.inputEventsInterval);
     this.subscribeOutputModelChangeSubject(this.configuracion.outputEventsInterval);
-
-    // Once we apply options, we need to normalise model values for the first time
-    this.renormaliseSliderValores();
 
     this.vistaValorInferior = this.aplicarValorVista(this.valor);
     this.vistaValorSuperior = this.aplicarValorVista(this.valorSuperior);
@@ -417,25 +389,6 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     return inputNormalizado;
   }
 
-  private renormaliseSliderValores(): void {
-    const previousSliderValores: SliderValores = {
-      valor: this.valor,
-      valorSuperior: this.valorSuperior
-    };
-    const normalisedSliderValores: SliderValores = this.normalizarValores(previousSliderValores);
-    if (!SliderValores.compare(normalisedSliderValores, previousSliderValores)) {
-      this.valor = normalisedSliderValores.valor;
-      this.valorSuperior = normalisedSliderValores.valorSuperior;
-
-      this.outputModelChangeSubject.next({
-        valor: this.valor,
-        valorSuperior: this.valorSuperior,
-        forceChange: true,
-        userEventInitiated: false
-      });
-    }
-  }
-
   // Read the user options and apply them to the slider model
   private aplicarConfiguracion(): void {
     this.configuracion.showSelectionBar =
@@ -457,13 +410,9 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   private aplicarConfiguracionNormal(): void {
-    if (UtilsHelper.esIndefinidoONulo(this.configuracion.nodo)) {
+    this.configuracion.nodo = +this.configuracion.nodo;
+    if (this.configuracion.nodo <= 0) {
       this.configuracion.nodo = 1;
-    } else {
-      this.configuracion.nodo = +this.configuracion.nodo;
-      if (this.configuracion.nodo <= 0) {
-        this.configuracion.nodo = 1;
-      }
     }
 
     this.configuracion.limiteSuperior = +this.configuracion.limiteSuperior;
@@ -508,7 +457,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.handleHalfDimension = handleWidth / 2;
     this.fullBarElement.calcularDimension();
 
-    this.maxHandlePosition = this.fullBarElement.dimension - handleWidth;
+    this.maximaPosicionDeslizable = this.fullBarElement.dimension - handleWidth;
 
     if (this.initHasRun) {
       this.inicializarDeslizables();
@@ -616,12 +565,12 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     if (UtilsHelper.esIndefinidoONulo(percent)) {
       percent = 0;
     }
-    return percent * this.maxHandlePosition;
+    return percent * this.maximaPosicionDeslizable;
   }
 
   // Translate position to model value
   private aplicarPosicionAlValor(position: number): number {
-    let percent: number = position / this.maxHandlePosition;
+    let percent: number = position / this.maximaPosicionDeslizable;
     const value: number = UtilsHelper.linearPositionToValue(
       percent,
       this.configuracion.limiteInferior,
@@ -832,7 +781,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     let nuevoValor: number;
     if (nuevaPosicion <= 0) {
       nuevoValor = this.configuracion.limiteInferior;
-    } else if (nuevaPosicion >= this.maxHandlePosition) {
+    } else if (nuevaPosicion >= this.maximaPosicionDeslizable) {
       nuevoValor = this.configuracion.limiteSuperior;
     } else {
       nuevoValor = this.aplicarPosicionAlValor(nuevaPosicion);
