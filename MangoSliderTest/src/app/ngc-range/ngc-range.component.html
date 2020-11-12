@@ -1,6 +1,3 @@
-<div *ngIf="type === 'normal'">
-    <input type="number" customRangeElement #valorElement class="form-control" [(ngModel)]="valor">
-</div>
 <div class="ngx-slider-bar-container">
     <span customRangeElement #fullBar class="ngx-slider-span ngx-slider-bar-wrapper ngx-slider-full-bar">
         <span class="ngx-slider-span ngx-slider-bar"></span>
@@ -15,21 +12,18 @@
     <span customRangeHandle #maxHandle [style.display]="'inherit'"
         class="ngx-slider-span ngx-slider-pointer ngx-slider-pointer-max"></span>
 
-    <!-- // 6 Floor label -->
-    <span customRangeLabel #floorLabel
-        class="ngx-slider-span ngx-slider-bubble ngx-slider-limit ngx-slider-floor"></span>
-    <!-- // 7 Ceiling label -->
-    <span customRangeLabel #ceilLabel class="ngx-slider-span ngx-slider-bubble ngx-slider-limit ngx-slider-ceil"></span>
-
     <!-- // 8 Label above the low slider handle -->
-    <span customRangeLabel #minHandleLabel class="ngx-slider-model-value"></span>
+    <span customRangeLabel #minHandleLabel class="ngx-slider-model ngx-slider-model-value"
+        (click)="onClickInferiorLabel()" [hidden]="valorEditable"></span>
     <!-- // 9 Label above the high slider handle -->
-    <span customRangeLabel #maxHandleLabel class="ngx-slider-model-high"></span>
+    <span customRangeLabel #maxHandleLabel class="ngx-slider-model ngx-slider-model-high"
+        (click)="onClickSuperiorLabel()" [hidden]="valorSuperiorEditable"></span>
 </div>
-
 <div *ngIf="type === 'normal'">
-    <input type="number" customRangeElement #valorSuperiorElement class="form-control" [(ngModel)]="valorSuperior">
-</div>
-<div class="row col-6">
-    {{slideValores | json}}
+    <input type="number" customRangeElement id="valorElement" #valorElement [(ngModel)]="valor"
+        [hidden]="!valorEditable"
+        class="ngx-slider-model ngx-slider-model-value ngx-slider-model-label ngx-slider-model-value-label">
+    <input type="number" customRangeElement id="valorSuperiorElement" #valorSuperiorElement [(ngModel)]="valorSuperior"
+        [hidden]="!valorSuperiorEditable"
+        class="ngx-slider-model ngx-slider-model-high ngx-slider-model-label ngx-slider-model-high-label">
 </div>

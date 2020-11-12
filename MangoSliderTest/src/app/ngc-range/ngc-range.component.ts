@@ -29,6 +29,7 @@ import {
   OutputModelChange,
   SliderChange,
   SliderValores,
+  TipoLabel,
   TipoPunto,
   TipoSlider
 } from '../models';
@@ -62,7 +63,9 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   valueChange: EventEmitter<number> = new EventEmitter();
 
   valor: number = null;
+  valorEditable = false;
   valorSuperior: number = null;
+  valorSuperiorEditable = null;
 
   // Output for high value slider to support two-way bindings
   @Output()
@@ -747,6 +750,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
         forceChange: true,
         internalChange: true
       };
+      this.valorEditable = false;
     } else {
       inputModelChange = {
         valor: this.valor,
@@ -754,13 +758,26 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
         forceChange: true,
         internalChange: true
       };
+      this.valorSuperiorEditable = false;
     }
 
-    // let newValues = [Number(nuevoValor), this.valorSuperior];
-    // this.slideValores = newValues;
-
-    // this.actualizarPosicionDeslizable(nuevoValor);
     this.inputModelChangeSubject.next(inputModelChange);
+  }
+
+  onClickInferiorLabel() {
+    if (this.type === TipoSlider.Normal) {
+      this.valorEditable = !this.valorEditable;
+      const element = this.renderer.selectRootElement('#valorElement');
+      setTimeout(() => element.focus(), 0);
+    }
+  }
+
+  onClickSuperiorLabel() {
+    if (this.type === TipoSlider.Normal) {
+      this.valorSuperiorEditable = !this.valorSuperiorEditable;
+      const element = this.renderer.selectRootElement('#valorSuperiorElement');
+      setTimeout(() => element.focus(), 0);
+    }
   }
 
   // onStart event handler

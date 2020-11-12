@@ -27,6 +27,37 @@
       margin-top: 15px;
     }
 
+    .ngx-slider-model {
+      margin-top: 2%;
+      width: 25%;
+    }
+
+    .ngx-slider-model-value {
+      float: left;
+      text-align: left;
+    }
+
+    .ngx-slider-model-high {
+      float: right;
+      text-align: right;
+    }
+
+    .ngx-slider-model-label {
+      height: 10%;
+      margin-top: 2%;
+      outline: none;
+      border: none;
+      box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+    }
+
+    .ngx-slider-model-value-label {
+      text-align: left;
+    }
+
+    .ngx-slider-model-high-label {
+      text-align: right;
+    }
+
     .ngx-slider-bar-wrapper {
       left: 0;
       box-sizing: border-box;
@@ -86,14 +117,14 @@
       }
     }
 
-    .ngx-slider-model-value {
-      margin-top: 5px;
-      float: left;
+    // Elimino las flechas para arriba y para abajo del input number
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
     }
-
-    .ngx-slider-model-high {
-      margin-top: 5px;
-      float: right;
+    input[type='number'] {
+      -moz-appearance: textfield;
     }
   }
 }
