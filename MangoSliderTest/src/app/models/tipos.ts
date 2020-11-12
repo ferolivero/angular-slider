@@ -7,10 +7,3 @@ export enum TipoPunto {
   Min,
   Max
 }
-
-export enum TipoLabel {
-  ValorInferior,
-  ValorSuperior,
-  LimiteInferior,
-  LimiteSuperior
-}

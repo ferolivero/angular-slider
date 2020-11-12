@@ -27,9 +27,7 @@ import {
   InputModelChange,
   ModelChange,
   OutputModelChange,
-  SliderChange,
   SliderValores,
-  TipoLabel,
   TipoPunto,
   TipoSlider
 } from '../models';
@@ -71,17 +69,8 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @Output()
   valorSuperiorChange: EventEmitter<number> = new EventEmitter();
 
-  // Event emitted when user starts interaction with the slider
-  // @Output()
-  // userChangeStart: EventEmitter<SliderChange> = new EventEmitter();
-
-  // Event emitted on each change coming from user interaction
   @Output()
-  userChange: EventEmitter<SliderChange> = new EventEmitter();
-
-  // Event emitted when user finishes interaction with the slider
-  @Output()
-  userChangeEnd: EventEmitter<SliderChange> = new EventEmitter();
+  rangeChange: EventEmitter<number[]> = new EventEmitter();
 
   // Set to true if init method already executed
   private initHasRun: boolean = false;
@@ -221,8 +210,8 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private subscribeInputModelChangeSubject(interval?: number): void {
     this.inputModelChangeSubscription = this.inputModelChangeSubject
       .pipe(
-        // distinctUntilChanged(ModelChange.compare),
-        // filter((modelChange: InputModelChange) => modelChange.forceChange),
+        distinctUntilChanged(ModelChange.compare),
+        filter((modelChange: InputModelChange) => modelChange.forceChange),
         throttleTime(interval, undefined, { leading: true, trailing: true })
       )
       .subscribe((modelChange: InputModelChange) => this.applyInputModelChange(modelChange));
@@ -231,7 +220,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private subscribeOutputModelChangeSubject(interval?: number): void {
     this.outputModelChangeSubscription = this.outputModelChangeSubject
       .pipe(
-        // distinctUntilChanged(ModelChange.compare),
+        distinctUntilChanged(ModelChange.compare),
         throttleTime(interval, undefined, { leading: true, trailing: true })
       )
       .subscribe((modelChange: OutputModelChange) => this.publishOutputModelChange(modelChange));
@@ -335,7 +324,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   // Apply model change to the slider view
   private applyInputModelChange(modelChange: InputModelChange): void {
-    // console.log(modelChange);
+    console.log(modelChange);
     const valoresNormalizados: SliderValores = this.normalizarValores(modelChange);
 
     if (this.type === TipoSlider.Normal) {
@@ -393,7 +382,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     if (modelChange.userEventInitiated) {
       // If this change was initiated by a user event, we can emit outputs in the same tick
       emitOutputs();
-      this.userChange.emit(this.getSliderChange());
+      // this.userChange.emit(this.getSliderChange());
     } else {
       // But, if the change was initated by something else like a change in input bindings,
       // we need to wait until next tick to emit the outputs to keep Angular change detection happy
@@ -795,8 +784,6 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   ): void {
     event.stopPropagation();
     event.preventDefault();
-    this.calcularDimensiones();
-
     if (UtilsHelper.esIndefinidoONulo(tipoPunto)) {
       tipoPunto = this.obtenerDeslizableMasCercano(event);
     }
@@ -858,7 +845,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.deslizable.activo = false;
     this.unsubscribeOnMove();
     this.unsubscribeOnEnd();
-    this.userChangeEnd.emit(this.getSliderChange());
+    this.rangeChange.emit(this.slideValores);
   }
 
   /** Get min value depending on whether the newPos is outOfBounds above or below the bar */
@@ -921,14 +908,6 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       }
       this.actualizarDeslizables(this.tipoPuntoActivo, this.valorAPosicion(nuevoValor));
     }
-  }
-
-  private getSliderChange(): SliderChange {
-    const sliderChange: SliderChange = new SliderChange();
-    sliderChange.tipoPunto = this.tipoPuntoActivo;
-    sliderChange.valor = +this.valor;
-    sliderChange.valorSuperior = +this.valorSuperior;
-    return sliderChange;
   }
 
   public ngOnDestroy(): void {
