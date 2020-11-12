@@ -29,7 +29,6 @@
 
     .ngx-slider-model {
       margin-top: 2%;
-      width: 25%;
     }
 
     .ngx-slider-model-value {
@@ -43,6 +42,7 @@
     }
 
     .ngx-slider-model-label {
+      width: 10%;
       height: 10%;
       margin-top: 2%;
       outline: none;
@@ -102,18 +102,6 @@
         &:after {
           background-color: $handleActiveColor;
         }
-      }
-    }
-
-    .ngx-slider-bubble {
-      cursor: default;
-      bottom: $handleSize / 2;
-      padding: $bubblePaddingVertical $bubblePaddingHorizontal;
-      color: $labelTextColor;
-      font-size: $labelFontSize;
-
-      &.ngx-slider-limit {
-        color: $limitLabelTextColor;
       }
     }
 
