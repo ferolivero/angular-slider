@@ -51,6 +51,7 @@ const NGX_SLIDER_CONTROL_VALUE_ACCESSOR: any = {
 })
 export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy, ControlValueAccessor {
   // Inputs
+  // @Input('ngModel') slideValores: number[];
   @Input() valor: number = null;
   @Input() type: string = TipoSlider.Normal;
   @Input() min: number;
