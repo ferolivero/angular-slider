@@ -11,9 +11,9 @@
     user-select: none;
     touch-action: pan-y;
 
-    &.with-legend {
-      margin-bottom: $withLegendMargin;
-    }
+    // &.with-legend {
+    //   margin-bottom: $withLegendMargin;
+    // }
 
     .ngx-slider-span {
       white-space: nowrap;
@@ -65,21 +65,6 @@
       z-index: 3;
       @include rounded($handleSize / 2);
 
-      &:after {
-        content: '';
-        width: $handlePointerSize;
-        height: $handlePointerSize;
-        position: absolute;
-        top: $handleSize / 2 - $handlePointerSize / 2;
-        left: $handleSize / 2 - $handlePointerSize / 2;
-        @include rounded($handlePointerSize / 2);
-        background: $handleInnerColor;
-      }
-
-      &:hover:after {
-        background-color: $handleHoverColor;
-      }
-
       &.ngx-slider-active {
         z-index: 4;
 
@@ -99,6 +84,16 @@
       &.ngx-slider-limit {
         color: $limitLabelTextColor;
       }
+    }
+
+    .ngx-slider-model-value {
+      margin-top: 5px;
+      float: left;
+    }
+
+    .ngx-slider-model-high {
+      margin-top: 5px;
+      float: right;
     }
   }
 }

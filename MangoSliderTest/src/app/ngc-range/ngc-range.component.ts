@@ -4,14 +4,18 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   HostListener,
   Input,
+  OnChanges,
   OnDestroy,
   OnInit,
   Output,
   Renderer2,
+  SimpleChanges,
   ViewChild
 } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, tap, throttleTime } from 'rxjs/operators';
 import { CustomRangeElementDirective } from '../directives/custom-range-element.directive';
@@ -31,13 +35,21 @@ import {
 import { CustomRangeHandleDirective } from './../directives/custom-range-handle.directive';
 import { CustomRangeLabelDirective } from './../directives/custom-range-label.directive';
 
+const NGX_SLIDER_CONTROL_VALUE_ACCESSOR: any = {
+  provide: NG_VALUE_ACCESSOR,
+  /* tslint:disable-next-line: no-use-before-declare */
+  useExisting: forwardRef(() => NgcRangeComponent),
+  multi: true
+};
+
 @Component({
   selector: 'ngc-range',
   templateUrl: './ngc-range.component.html',
   styleUrls: ['./ngc-range.component.scss'],
-  host: { class: 'ngx-slider' }
+  host: { class: 'ngx-slider' },
+  providers: [NGX_SLIDER_CONTROL_VALUE_ACCESSOR]
 })
-export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
+export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy, ControlValueAccessor {
   // Inputs
   @Input() valor: number = null;
   @Input() type: string = TipoSlider.Normal;
@@ -57,8 +69,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
   valorSuperiorChange: EventEmitter<number> = new EventEmitter();
 
   // Event emitted when user starts interaction with the slider
-  @Output()
-  userChangeStart: EventEmitter<SliderChange> = new EventEmitter();
+  // @Output()
+  // userChangeStart: EventEmitter<SliderChange> = new EventEmitter();
 
   // Event emitted on each change coming from user interaction
   @Output()
@@ -128,6 +140,10 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
   private onMoveEventListener: EventListener = null;
   private onEndEventListener: EventListener = null;
 
+  // Callbacks for reactive forms support
+  private onTouchedCallback: (value: any) => void = null;
+  private onChangeCallback: (value: any) => void = null;
+
   public constructor(
     private renderer: Renderer2,
     private elementRef: ElementRef,
@@ -138,7 +154,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // OnInit interface
   public ngOnInit(): void {
-    if (this.type === 'fixed') {
+    if (this.type === TipoSlider.Fixed) {
       this.configuracion.valoresPosibles = this.values;
       this.valorSuperior = this.values[this.values.length - 1];
     } else {
@@ -146,6 +162,21 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.configuracion.limiteSuperior = this.max;
       this.valor = this.min;
       this.valorSuperior = this.max;
+    }
+  }
+
+  public ngOnChanges(changes: SimpleChanges): void {
+    // Then value changes
+    if (
+      !UtilsHelper.esIndefinidoONulo(changes.valor) ||
+      !UtilsHelper.esIndefinidoONulo(changes.valorSuperior)
+    ) {
+      this.inputModelChangeSubject.next({
+        valor: this.valor,
+        valorSuperior: this.valorSuperior,
+        forceChange: false,
+        internalChange: false
+      });
     }
   }
 
@@ -181,13 +212,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
   private subscribeInputModelChangeSubject(interval?: number): void {
     this.inputModelChangeSubscription = this.inputModelChangeSubject
       .pipe(
-        distinctUntilChanged(ModelChange.compare),
-        // Hack to reset the status of the distinctUntilChanged() - if a "fake" event comes through with forceChange=true,
-        // we forcefully by-pass distinctUntilChanged(), but otherwise drop the event
-        filter((modelChange: InputModelChange) => !modelChange.forceChange && !modelChange.internalChange),
-        !UtilsHelper.esIndefinidoONulo(interval)
-          ? throttleTime(interval, undefined, { leading: true, trailing: true })
-          : tap(() => {}) // no-op
+        // distinctUntilChanged(ModelChange.compare),
+        throttleTime(interval, undefined, { leading: true, trailing: true })
       )
       .subscribe((modelChange: InputModelChange) => this.applyInputModelChange(modelChange));
   }
@@ -195,10 +221,8 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
   private subscribeOutputModelChangeSubject(interval?: number): void {
     this.outputModelChangeSubscription = this.outputModelChangeSubject
       .pipe(
-        distinctUntilChanged(ModelChange.compare),
-        !UtilsHelper.esIndefinidoONulo(interval)
-          ? throttleTime(interval, undefined, { leading: true, trailing: true })
-          : tap(() => {}) // no-op
+        // distinctUntilChanged(ModelChange.compare),
+        throttleTime(interval, undefined, { leading: true, trailing: true })
       )
       .subscribe((modelChange: OutputModelChange) => this.publishOutputModelChange(modelChange));
   }
@@ -303,11 +327,26 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
   private applyInputModelChange(modelChange: InputModelChange): void {
     const valoresNormalizados: SliderValores = this.normalizarValores(modelChange);
 
+    let valoresSobrepasados = false;
+    if (valoresNormalizados.valor > this.vistaValorSuperior) {
+      valoresNormalizados.valor = this.vistaValorSuperior;
+      valoresSobrepasados = true;
+    }
+
+    if (valoresNormalizados.valorSuperior < this.vistaValorInferior) {
+      valoresNormalizados.valorSuperior = this.vistaValorInferior;
+      valoresSobrepasados = true;
+    }
+
+    // if (!valoresSobrepasados) {
     // If normalised model change is different, apply the change to the model values
     const normalisationChange: boolean = !SliderValores.compare(modelChange, valoresNormalizados);
     if (normalisationChange) {
       this.valor = valoresNormalizados.valor;
       this.valorSuperior = valoresNormalizados.valorSuperior;
+    } else {
+      console.log(modelChange);
+      console.log(valoresNormalizados);
     }
 
     this.vistaValorInferior = this.aplicarValorVista(valoresNormalizados.valor);
@@ -323,8 +362,9 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
       valor: valoresNormalizados.valor,
       valorSuperior: valoresNormalizados.valorSuperior,
       forceChange: normalisationChange,
-      userEventInitiated: false
+      userEventInitiated: true
     });
+    // }
   }
 
   // Publish model change to output event emitters and registered callbacks
@@ -333,6 +373,13 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.valueChange.emit(modelChange.valor);
       this.valorSuperiorChange.emit(modelChange.valorSuperior);
     };
+
+    if (!UtilsHelper.esIndefinidoONulo(this.onChangeCallback)) {
+      this.onChangeCallback([modelChange.valor, modelChange.valorSuperior]);
+    }
+    if (!UtilsHelper.esIndefinidoONulo(this.onTouchedCallback)) {
+      this.onTouchedCallback([modelChange.valor, modelChange.valorSuperior]);
+    }
 
     if (modelChange.userEventInitiated) {
       // If this change was initiated by a user event, we can emit outputs in the same tick
@@ -381,17 +428,17 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
       valorSuperior: this.valorSuperior
     };
     const normalisedSliderValores: SliderValores = this.normalizarValores(previousSliderValores);
-    if (!SliderValores.compare(normalisedSliderValores, previousSliderValores)) {
-      this.valor = normalisedSliderValores.valor;
-      this.valorSuperior = normalisedSliderValores.valorSuperior;
+    // if (!SliderValores.compare(normalisedSliderValores, previousSliderValores)) {
+    this.valor = normalisedSliderValores.valor;
+    this.valorSuperior = normalisedSliderValores.valorSuperior;
 
-      this.outputModelChangeSubject.next({
-        valor: this.valor,
-        valorSuperior: this.valorSuperior,
-        forceChange: true,
-        userEventInitiated: false
-      });
-    }
+    this.outputModelChangeSubject.next({
+      valor: this.valor,
+      valorSuperior: this.valorSuperior,
+      forceChange: true,
+      userEventInitiated: false
+    });
+    // }
   }
 
   // Read the user options and apply them to the slider model
@@ -641,6 +688,32 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  // ControlValueAccessor interface
+  public writeValue(obj: any): void {
+    if (!UtilsHelper.esIndefinidoONulo(obj) && obj instanceof Array) {
+      this.valor = obj[0];
+      this.valorSuperior = obj[1];
+
+      // ngOnChanges() is not called in this instance, so we need to communicate the change manually
+      this.inputModelChangeSubject.next({
+        valor: this.valor,
+        valorSuperior: this.valorSuperior,
+        forceChange: true,
+        internalChange: true
+      });
+    }
+  }
+
+  // ControlValueAccessor interface
+  public registerOnChange(onChangeCallback: any): void {
+    this.onChangeCallback = onChangeCallback;
+  }
+
+  // ControlValueAccessor interface
+  public registerOnTouched(onTouchedCallback: any): void {
+    this.onTouchedCallback = onTouchedCallback;
+  }
+
   // onStart event handler
   private onStart(
     tipoPunto: TipoPunto,
@@ -686,7 +759,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
       );
     }
 
-    this.userChangeStart.emit(this.getSliderChange());
+    // this.userChangeStart.emit(this.getSliderChange());
 
     // Click events, either with mouse or touch gesture are weird. Sometimes they result in full
     // start, move, end sequence, and sometimes, they don't - they only invoke mousedown
@@ -747,11 +820,11 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
     const newPos: number = this.obtenerPosicion(event);
     let newMinValue = this.getMinValue(newPos, false);
     let newMaxValue = this.getMaxValue(newPos, false);
-    this.positionTrackingBar(newMinValue, newMaxValue);
+    this.posicionElementosSeleccionados(newMinValue, newMaxValue);
   }
 
   // Set the new value and position for the entire bar
-  private positionTrackingBar(newMinValue: number, newMaxValue: number): void {
+  private posicionElementosSeleccionados(newMinValue: number, newMaxValue: number): void {
     this.vistaValorInferior = newMinValue;
     this.vistaValorSuperior = newMaxValue;
     this.aplicarCambiosAlModelo();
@@ -789,7 +862,7 @@ export class NgcRangeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this.desbindearEventos();
-    this.unsubscribeInputModelChangeSubject();
     this.unsubscribeOutputModelChangeSubject();
+    this.unsubscribeInputModelChangeSubject();
   }
 }

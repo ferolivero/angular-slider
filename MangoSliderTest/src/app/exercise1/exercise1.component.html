@@ -3,14 +3,19 @@
     {{titulo}}
   </div>
 
-  <div class="card-body" *ngIf="data">
+  <div class="card-body">
     <div class="container">
-      <div class="row justify-content-between">
-        <div class="col-4">
-          <ngc-range [min]="data.min" [max]="data.max">
-          </ngc-range>
-        </div>
-      </div>
+      <input type="number" #valorElement class="form-control" (keyup.enter)="setValue(valorElement.value, tipoPuntoMin)"
+        (blur)="setValue(valorElement.value, tipoPuntoMin)" [value]="getValue(slideValores, tipoPuntoMin)">
+      <ngc-range *ngIf="data" [min]="data.min" [max]="data.max" [(ngModel)]="slideValores">
+      </ngc-range>
+      <input type="number" #valorSuperiorElement class="form-control"
+        (keyup.enter)="setValue(valorSuperiorElement.value, tipoPuntoMax)"
+        (blur)="setValue(valorSuperiorElement.value, tipoPuntoMax)"
+        (valorSuperiorChange)="onValorSuperiorCambio($event)" [value]="getValue(slideValores, tipoPuntoMax)">
+      <p>
+        {{slideValores | json}}
+      </p>
     </div>
   </div>
 </div>
