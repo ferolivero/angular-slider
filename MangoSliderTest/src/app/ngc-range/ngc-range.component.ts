@@ -334,18 +334,20 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private applyInputModelChange(modelChange: InputModelChange): void {
     const valoresNormalizados: SliderValores = this.normalizarValores(modelChange);
 
-    let valoresSobrepasados = false;
-    if (valoresNormalizados.valor > this.vistaValorSuperior) {
-      valoresNormalizados.valor = this.vistaValorSuperior;
-      valoresSobrepasados = true;
+    if (this.type === TipoSlider.Normal) {
+      if (valoresNormalizados.valor > this.vistaValorSuperior) {
+        valoresNormalizados.valor = this.vistaValorSuperior;
+      } else if (valoresNormalizados.valor < this.min) {
+        valoresNormalizados.valor = this.min;
+      }
+
+      if (valoresNormalizados.valorSuperior < this.vistaValorInferior) {
+        valoresNormalizados.valorSuperior = this.vistaValorInferior;
+      } else if (valoresNormalizados.valorSuperior > this.max) {
+        valoresNormalizados.valorSuperior = this.max;
+      }
     }
 
-    if (valoresNormalizados.valorSuperior < this.vistaValorInferior) {
-      valoresNormalizados.valorSuperior = this.vistaValorInferior;
-      valoresSobrepasados = true;
-    }
-
-    // if (!valoresSobrepasados) {
     // If normalised model change is different, apply the change to the model values
     const normalisationChange: boolean = !SliderValores.compare(modelChange, valoresNormalizados);
     if (normalisationChange) {
