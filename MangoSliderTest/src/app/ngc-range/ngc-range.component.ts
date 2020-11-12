@@ -51,8 +51,7 @@ const NGX_SLIDER_CONTROL_VALUE_ACCESSOR: any = {
 })
 export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy, ControlValueAccessor {
   // Inputs
-  // @Input('ngModel') slideValores: number[];
-  @Input() valor: number = null;
+  @Input('ngModel') slideValores: number[];
   @Input() type: string = TipoSlider.Normal;
   @Input() min: number;
   @Input() max: number;
@@ -62,8 +61,8 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @Output()
   valueChange: EventEmitter<number> = new EventEmitter();
 
-  // Model for high value of slider. Not used in simple slider. For range slider, this is the high value.
-  private valorSuperior: number = null;
+  valor: number = null;
+  valorSuperior: number = null;
 
   // Output for high value slider to support two-way bindings
   @Output()
@@ -113,6 +112,12 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   /* Slider DOM elements */
   // The whole slider bar
+  @ViewChild('valorElement', { read: CustomRangeElementDirective })
+  inputValorElement: CustomRangeElementDirective;
+
+  @ViewChild('valorSuperiorElement', { read: CustomRangeElementDirective })
+  inputValorSuperiorElement: CustomRangeElementDirective;
+
   @ViewChild('fullBar', { read: CustomRangeElementDirective })
   fullBarElement: CustomRangeElementDirective;
 
@@ -667,6 +672,22 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       this.onStart(TipoPunto.Min, event, true, true)
     );
 
+    this.inputValorElement.activarEvento('blur', (event): void =>
+      this.setNuevoValor(event.target.value, TipoPunto.Min)
+    );
+
+    this.inputValorElement.activarEvento('keyup.enter', (event): void =>
+      this.setNuevoValor(event.target.value, TipoPunto.Min)
+    );
+
+    this.inputValorSuperiorElement.activarEvento('blur', (event): void =>
+      this.setNuevoValor(event.target.value, TipoPunto.Max)
+    );
+
+    this.inputValorSuperiorElement.activarEvento('keyup.enter', (event): void =>
+      this.setNuevoValor(event.target.value, TipoPunto.Max)
+    );
+
     this.maxHandleElement.activarEvento('mousedown', (event: MouseEvent): void =>
       this.onStart(TipoPunto.Max, event, true, true)
     );
@@ -712,6 +733,32 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   // ControlValueAccessor interface
   public registerOnTouched(onTouchedCallback: any): void {
     this.onTouchedCallback = onTouchedCallback;
+  }
+
+  setNuevoValor(nuevoValor: number, tipoPunto: TipoPunto) {
+    this.tipoPuntoActivo = tipoPunto;
+    let inputModelChange;
+    if (tipoPunto === TipoPunto.Min) {
+      inputModelChange = {
+        valor: nuevoValor,
+        valorSuperior: this.valorSuperior,
+        forceChange: true,
+        internalChange: true
+      };
+    } else {
+      inputModelChange = {
+        valor: this.valor,
+        valorSuperior: nuevoValor,
+        forceChange: true,
+        internalChange: true
+      };
+    }
+
+    // let newValues = [Number(nuevoValor), this.valorSuperior];
+    // this.slideValores = newValues;
+
+    // this.actualizarPosicionDeslizable(nuevoValor);
+    this.inputModelChangeSubject.next(inputModelChange);
   }
 
   // onStart event handler

@@ -21,4 +21,8 @@
 <!-- // 9 Label above the high slider handle -->
 <span customRangeLabel #maxHandleLabel class="ngx-slider-model-high"></span>
 
-<!-- {{slideValores | json}} -->
+<input type="number" customRangeElement #valorElement class="form-control" [(ngModel)]="valor">
+
+<input type="number" customRangeElement #valorSuperiorElement class="form-control" [(ngModel)]="valorSuperior">
+
+{{slideValores | json}}
