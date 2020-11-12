@@ -3,7 +3,7 @@ export class Config {
   limiteInferior?: number = 0;
   limiteSuperior?: number = null;
 
-  valoresPosibles?: number[] = null;
+  // valoresPosibles?: number[] = null;
 
   /** Step between each value.
     Not applicable when using stepsArray. */

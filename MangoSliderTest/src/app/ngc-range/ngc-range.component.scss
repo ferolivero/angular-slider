@@ -11,10 +11,6 @@
     user-select: none;
     touch-action: pan-y;
 
-    // &.with-legend {
-    //   margin-bottom: $withLegendMargin;
-    // }
-
     .ngx-slider-span {
       white-space: nowrap;
       position: absolute;
@@ -25,6 +21,10 @@
       width: 100%;
       height: 100%;
       padding: 0;
+    }
+
+    .ngx-slider-bar-container {
+      margin-top: 15px;
     }
 
     .ngx-slider-bar-wrapper {
@@ -60,7 +60,7 @@
       cursor: pointer;
       width: $handleSize;
       height: $handleSize;
-      top: -$handleSize / 2 + $barDimension / 2;
+      margin-top: -$handleSize / 2.5;
       background-color: $handleBgColor;
       z-index: 3;
       @include rounded($handleSize / 2);

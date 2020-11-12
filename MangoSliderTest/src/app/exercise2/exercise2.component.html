@@ -3,13 +3,9 @@
     {{titulo}}
   </div>
 
-  <div class="card-body" *ngIf="fixedData">
+  <div class="card-body" *ngIf="data">
     <div class="container">
-      <div class="row justify-content-between">
-        <div class="col-4">
-          <ngc-range [values]="fixedData.valores" [type]="'fixed'"> </ngc-range>
-        </div>
-      </div>
+      <ngc-range [values]="data.valores" [type]="'fixed'" [(ngModel)]="slideValores"> </ngc-range>
     </div>
   </div>
 </div>

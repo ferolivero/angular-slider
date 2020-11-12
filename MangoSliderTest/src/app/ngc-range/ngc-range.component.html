@@ -1,28 +1,35 @@
-<span customRangeElement #fullBar class="ngx-slider-span ngx-slider-bar-wrapper ngx-slider-full-bar">
-    <span class="ngx-slider-span ngx-slider-bar"></span>
-</span>
+<div *ngIf="type === 'normal'">
+    <input type="number" customRangeElement #valorElement class="form-control" [(ngModel)]="valor">
+</div>
+<div class="ngx-slider-bar-container">
+    <span customRangeElement #fullBar class="ngx-slider-span ngx-slider-bar-wrapper ngx-slider-full-bar">
+        <span class="ngx-slider-span ngx-slider-bar"></span>
+    </span>
 
-<span customRangeElement #selectionBar class="ngx-slider-span ngx-slider-bar-wrapper ngx-slider-selection-bar">
-    <span class="ngx-slider-span ngx-slider-bar ngx-slider-selection"></span>
-</span>
+    <span customRangeElement #selectionBar class="ngx-slider-span ngx-slider-bar-wrapper ngx-slider-selection-bar">
+        <span class="ngx-slider-span ngx-slider-bar ngx-slider-selection"></span>
+    </span>
 
-<span customRangeHandle #minHandle class="ngx-slider-span ngx-slider-pointer ngx-slider-pointer-min"></span>
-<!-- // 5 High slider handle -->
-<span customRangeHandle #maxHandle [style.display]="'inherit'"
-    class="ngx-slider-span ngx-slider-pointer ngx-slider-pointer-max"></span>
+    <span customRangeHandle #minHandle class="ngx-slider-span ngx-slider-pointer ngx-slider-pointer-min"></span>
+    <!-- // 5 High slider handle -->
+    <span customRangeHandle #maxHandle [style.display]="'inherit'"
+        class="ngx-slider-span ngx-slider-pointer ngx-slider-pointer-max"></span>
 
-<!-- // 6 Floor label -->
-<span customRangeLabel #floorLabel class="ngx-slider-span ngx-slider-bubble ngx-slider-limit ngx-slider-floor"></span>
-<!-- // 7 Ceiling label -->
-<span customRangeLabel #ceilLabel class="ngx-slider-span ngx-slider-bubble ngx-slider-limit ngx-slider-ceil"></span>
+    <!-- // 6 Floor label -->
+    <span customRangeLabel #floorLabel
+        class="ngx-slider-span ngx-slider-bubble ngx-slider-limit ngx-slider-floor"></span>
+    <!-- // 7 Ceiling label -->
+    <span customRangeLabel #ceilLabel class="ngx-slider-span ngx-slider-bubble ngx-slider-limit ngx-slider-ceil"></span>
 
-<!-- // 8 Label above the low slider handle -->
-<span customRangeLabel #minHandleLabel class="ngx-slider-model-value"></span>
-<!-- // 9 Label above the high slider handle -->
-<span customRangeLabel #maxHandleLabel class="ngx-slider-model-high"></span>
+    <!-- // 8 Label above the low slider handle -->
+    <span customRangeLabel #minHandleLabel class="ngx-slider-model-value"></span>
+    <!-- // 9 Label above the high slider handle -->
+    <span customRangeLabel #maxHandleLabel class="ngx-slider-model-high"></span>
+</div>
 
-<input type="number" customRangeElement #valorElement class="form-control" [(ngModel)]="valor">
-
-<input type="number" customRangeElement #valorSuperiorElement class="form-control" [(ngModel)]="valorSuperior">
-
-{{slideValores | json}}
+<div *ngIf="type === 'normal'">
+    <input type="number" customRangeElement #valorSuperiorElement class="form-control" [(ngModel)]="valorSuperior">
+</div>
+<div class="row col-6">
+    {{slideValores | json}}
+</div>

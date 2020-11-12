@@ -161,7 +161,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   // OnInit interface
   public ngOnInit(): void {
     if (this.type === TipoSlider.Fixed) {
-      this.configuracion.valoresPosibles = this.values;
+      this.valor = this.values[0];
       this.valorSuperior = this.values[this.values.length - 1];
     } else {
       this.configuracion.limiteInferior = this.min;
@@ -219,6 +219,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.inputModelChangeSubscription = this.inputModelChangeSubject
       .pipe(
         // distinctUntilChanged(ModelChange.compare),
+        // filter((modelChange: InputModelChange) => modelChange.forceChange),
         throttleTime(interval, undefined, { leading: true, trailing: true })
       )
       .subscribe((modelChange: InputModelChange) => this.applyInputModelChange(modelChange));
@@ -284,16 +285,16 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       return NaN;
     }
 
-    if (!UtilsHelper.esIndefinidoONulo(this.configuracion.valoresPosibles)) {
+    if (!UtilsHelper.esIndefinidoONulo(this.values)) {
       console.log(+modelValue);
-      return UtilsHelper.obtenerIndiceNodo(+modelValue, this.configuracion.valoresPosibles);
+      return UtilsHelper.obtenerIndiceNodo(+modelValue, this.values);
     }
     console.log(+modelValue);
     return +modelValue;
   }
 
   private aplicarValorModelo(viewValue: number): number {
-    if (!UtilsHelper.esIndefinidoONulo(this.configuracion.valoresPosibles)) {
+    if (!UtilsHelper.esIndefinidoONulo(this.values)) {
       console.log(+viewValue);
       return this.obtenerValorNodo(viewValue);
     }
@@ -302,7 +303,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   private obtenerValorNodo(sliderValor: number): number {
-    const nodo: number = this.configuracion.valoresPosibles[sliderValor];
+    const nodo: number = this.values[sliderValor];
     return !UtilsHelper.esIndefinidoONulo(nodo) ? nodo : NaN;
   }
 
@@ -404,20 +405,17 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     inputNormalizado.valor = input.valor;
     inputNormalizado.valorSuperior = input.valorSuperior;
 
-    if (!UtilsHelper.esIndefinidoONulo(this.configuracion.valoresPosibles)) {
+    if (!UtilsHelper.esIndefinidoONulo(this.values)) {
       // When using steps array, only round to nearest step in the array
       // No other enforcement can be done, as the step array may be out of order, and that is perfectly fine
-      const valueIndex: number = UtilsHelper.obtenerIndiceNodo(
-        inputNormalizado.valor,
-        this.configuracion.valoresPosibles
-      );
-      inputNormalizado.valor = this.configuracion.valoresPosibles[valueIndex];
+      const valueIndex: number = UtilsHelper.obtenerIndiceNodo(inputNormalizado.valor, this.values);
+      inputNormalizado.valor = this.values[valueIndex];
 
       const valorSuperiorIndex: number = UtilsHelper.obtenerIndiceNodo(
         inputNormalizado.valorSuperior,
-        this.configuracion.valoresPosibles
+        this.values
       );
-      inputNormalizado.valorSuperior = this.configuracion.valoresPosibles[valorSuperiorIndex];
+      inputNormalizado.valorSuperior = this.values[valorSuperiorIndex];
 
       return inputNormalizado;
     }
@@ -462,7 +460,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   private aplicarConfiguracionFixed(): void {
     this.configuracion.limiteInferior = 0;
-    this.configuracion.limiteSuperior = this.configuracion.valoresPosibles.length - 1;
+    this.configuracion.limiteSuperior = this.values.length - 1;
     this.configuracion.nodo = 1;
   }
 
@@ -672,21 +670,23 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       this.onStart(TipoPunto.Min, event, true, true)
     );
 
-    this.inputValorElement.activarEvento('blur', (event): void =>
-      this.setNuevoValor(event.target.value, TipoPunto.Min)
-    );
+    if (this.type === TipoSlider.Normal) {
+      this.inputValorElement.activarEvento('blur', (event): void =>
+        this.setNuevoValor(event.target.value, TipoPunto.Min)
+      );
 
-    this.inputValorElement.activarEvento('keyup.enter', (event): void =>
-      this.setNuevoValor(event.target.value, TipoPunto.Min)
-    );
+      this.inputValorElement.activarEvento('keyup.enter', (event): void =>
+        this.setNuevoValor(event.target.value, TipoPunto.Min)
+      );
 
-    this.inputValorSuperiorElement.activarEvento('blur', (event): void =>
-      this.setNuevoValor(event.target.value, TipoPunto.Max)
-    );
+      this.inputValorSuperiorElement.activarEvento('blur', (event): void =>
+        this.setNuevoValor(event.target.value, TipoPunto.Max)
+      );
 
-    this.inputValorSuperiorElement.activarEvento('keyup.enter', (event): void =>
-      this.setNuevoValor(event.target.value, TipoPunto.Max)
-    );
+      this.inputValorSuperiorElement.activarEvento('keyup.enter', (event): void =>
+        this.setNuevoValor(event.target.value, TipoPunto.Max)
+      );
+    }
 
     this.maxHandleElement.activarEvento('mousedown', (event: MouseEvent): void =>
       this.onStart(TipoPunto.Max, event, true, true)
