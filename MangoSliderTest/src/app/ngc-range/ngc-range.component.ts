@@ -363,9 +363,8 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       valor: valoresNormalizados.valor,
       valorSuperior: valoresNormalizados.valorSuperior,
       forceChange: normalisationChange,
-      userEventInitiated: true
+      userEventInitiated: false
     });
-    // }
   }
 
   // Publish model change to output event emitters and registered callbacks
@@ -429,17 +428,17 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       valorSuperior: this.valorSuperior
     };
     const normalisedSliderValores: SliderValores = this.normalizarValores(previousSliderValores);
-    // if (!SliderValores.compare(normalisedSliderValores, previousSliderValores)) {
-    this.valor = normalisedSliderValores.valor;
-    this.valorSuperior = normalisedSliderValores.valorSuperior;
+    if (!SliderValores.compare(normalisedSliderValores, previousSliderValores)) {
+      this.valor = normalisedSliderValores.valor;
+      this.valorSuperior = normalisedSliderValores.valorSuperior;
 
-    this.outputModelChangeSubject.next({
-      valor: this.valor,
-      valorSuperior: this.valorSuperior,
-      forceChange: true,
-      userEventInitiated: false
-    });
-    // }
+      this.outputModelChangeSubject.next({
+        valor: this.valor,
+        valorSuperior: this.valorSuperior,
+        forceChange: true,
+        userEventInitiated: false
+      });
+    }
   }
 
   // Read the user options and apply them to the slider model
