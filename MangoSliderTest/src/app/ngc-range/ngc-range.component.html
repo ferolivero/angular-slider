@@ -1,25 +1,25 @@
 <div class="ngc-range-slider-container">
-    <span customRangeElement #barraSlider class="ngc-range-span ngc-range-barra-wrapper ngc-range-full-bar">
+    <!-- Barras -->
+    <span customRangeElement #barraSlider class="ngc-range-span ngc-range-barra-wrapper">
         <span class="ngc-range-span ngc-range-barra"></span>
     </span>
-
     <span customRangeElement #barraSeleccionados class="ngc-range-span ngc-range-barra-wrapper">
         <span class="ngc-range-span ngc-range-barra ngc-range-seleccion"></span>
     </span>
 
+    <!-- Deslizables -->
     <span customRangeHandle #deslizableInferior class="ngc-range-span ngc-range-puntero ngc-range-puntero-min"></span>
-    <!-- // 5 High slider handle -->
     <span customRangeHandle #deslizableSuperior [style.display]="'inherit'"
         class="ngc-range-span ngc-range-puntero ngc-range-puntero-max"></span>
 
-    <!-- // 8 Label above the low slider handle -->
+    <!-- Labels -->
     <span customRangeLabel #labelInferior class="ngc-range-modelo-inferior" (click)="onClickInferiorLabel()"
         [hidden]="valorEditable"></span>
-    <!-- // 9 Label above the high slider handle -->
     <span customRangeLabel #labelSuperior class="ngc-range-modelo-superior" (click)="onClickSuperiorLabel()"
         [hidden]="valorSuperiorEditable"></span>
 </div>
 <div *ngIf="type === 'normal'">
+    <!-- Inputs Labels -->
     <input type="number" customRangeElement id="valorElement" #valorElement [(ngModel)]="valor"
         [hidden]="!valorEditable"
         class="ngc-range-modelo-inferior ngc-range-modelo-label ngc-range-modelo-inferior-label">
