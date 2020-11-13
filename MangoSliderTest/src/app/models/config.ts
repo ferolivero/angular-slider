@@ -3,10 +3,6 @@ export class Config {
   limiteInferior?: number = 0;
   limiteSuperior?: number = null;
 
-  /** Step between each value.
-    Not applicable when using stepsArray. */
-  nodo?: number = 1;
-
   /** Throttle interval for mouse events in milliseconds.
    * This is provided to avoid a flood of events when moving the slider with mouse. */
   mouseEventsInterval?: number = 50;

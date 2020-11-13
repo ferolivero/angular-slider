@@ -67,8 +67,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   valorSuperior: number = null;
   valorSuperiorEditable = null;
 
-  // Set to true if init method already executed
-  private initHasRun: boolean = false;
+  private componenteInicializado: boolean = false;
 
   // Changes in model inputs are passed through this subject
   // These are all changes coming in from outside the component through input bindings or reactive form inputs
@@ -126,7 +125,6 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.eventListenerHelper = new EventosHelper(this.renderer);
   }
 
-  // OnInit interface
   public ngOnInit(): void {
     if (this.type === TipoSlider.Fixed) {
       this.valor = this.values[0];
@@ -153,30 +151,24 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     }
   }
 
-  // AfterViewInit interface
   public ngAfterViewInit(): void {
     this.aplicarConfiguracion();
     this.subscribeInputModelChangeSubject(this.configuracion.inputEventsInterval);
     this.subscribeOutputModelChangeSubject(this.configuracion.outputEventsInterval);
 
-    this.vistaValorInferior = this.aplicarValorVista(this.valor);
-    this.vistaValorSuperior = this.aplicarValorVista(this.valorSuperior);
+    this.vistaValorInferior = this.obtenerValorVista(this.valor);
+    this.vistaValorSuperior = this.obtenerValorVista(this.valorSuperior);
 
-    // this.actualizarEscala();
     this.calcularDimensiones();
-    this.inicializarDeslizables();
+    this.actualizarDeslizables();
     this.bindearEventos();
-    this.initHasRun = true;
-
-    // Run change detection manually to resolve some issues when init procedure changes values used in the view
-    if (!this.isRefDestroyed()) {
-      this.changeDetectionRef.detectChanges();
-    }
+    this.componenteInicializado = true;
+    this.changeDetectionRef.detectChanges();
   }
 
   @HostListener('window:resize', ['$event'])
   public onResize(event: any): void {
-    this.calculateViewDimensionsAndDetectChanges();
+    this.procesarAjustePantalla();
   }
 
   private subscribeInputModelChangeSubject(interval?: number): void {
@@ -186,7 +178,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
         filter((modelChange: InputModelChange) => modelChange.forceChange),
         throttleTime(interval, undefined, { leading: true, trailing: true })
       )
-      .subscribe((modelChange: InputModelChange) => this.applyInputModelChange(modelChange));
+      .subscribe((modelChange: InputModelChange) => this.actualizarModeloDesdeInput(modelChange));
   }
 
   private subscribeOutputModelChangeSubject(interval?: number): void {
@@ -226,6 +218,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     }
   }
 
+  /** Obtener el elemento deslizable segun tipo de punto */
   private obtenerDeslizableElement(tipoPunto: TipoPunto): CustomRangeHandleDirective {
     if (tipoPunto === TipoPunto.Min) {
       return this.minHandleElement;
@@ -245,36 +238,34 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     return null;
   }
 
-  private aplicarValorVista(modelValue: number): number {
-    if (UtilsHelper.esIndefinidoONulo(modelValue)) {
+  /** Obtener el valor de la vista */
+  private obtenerValorVista(value: number): number {
+    if (UtilsHelper.esIndefinidoONulo(value)) {
       return NaN;
+    } else if (this.type === TipoSlider.Fixed) {
+      return UtilsHelper.obtenerIndiceNodo(+value, this.values);
     }
-
-    if (this.type === TipoSlider.Fixed) {
-      console.log(+modelValue);
-      return UtilsHelper.obtenerIndiceNodo(+modelValue, this.values);
-    }
-    console.log(+modelValue);
-    return +modelValue;
+    return +value;
   }
 
-  private aplicarValorModelo(viewValue: number): number {
+  /** Obtiene el valor del modelo segun el tipo de slider */
+  private obtenerValorModeloSegunTipo(valor: number): number {
     if (this.type === TipoSlider.Fixed) {
-      console.log(+viewValue);
-      return this.obtenerValorNodo(viewValue);
+      return this.obtenerValorNodo(valor);
     }
-    console.log(+viewValue);
-    return viewValue;
+    return valor;
   }
 
-  private obtenerValorNodo(sliderValor: number): number {
-    const nodo: number = this.values[sliderValor];
+  /** Obtener valor del nodo correspondiente al indice */
+  private obtenerValorNodo(indice: number): number {
+    const nodo: number = this.values[indice];
     return !UtilsHelper.esIndefinidoONulo(nodo) ? nodo : NaN;
   }
 
-  private aplicarCambiosAlModelo(): void {
-    this.valor = this.aplicarValorModelo(this.vistaValorInferior);
-    this.valorSuperior = this.aplicarValorModelo(this.vistaValorSuperior);
+  /** Actualizar los cambios al modelo */
+  private actualizarModelo(): void {
+    this.valor = this.obtenerValorModeloSegunTipo(this.vistaValorInferior);
+    this.valorSuperior = this.obtenerValorModeloSegunTipo(this.vistaValorSuperior);
 
     this.outputModelChangeSubject.next({
       valor: this.valor,
@@ -295,9 +286,8 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     });
   }
 
-  // Apply model change to the slider view
-  private applyInputModelChange(modelChange: InputModelChange): void {
-    console.log(modelChange);
+  /** Actualizar cambios al modelo a partir del input */
+  private actualizarModeloDesdeInput(modelChange: InputModelChange): void {
     const valoresNormalizados: SliderValores = this.normalizarValores(modelChange);
 
     if (this.type === TipoSlider.Normal) {
@@ -321,12 +311,10 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       this.valorSuperior = valoresNormalizados.valorSuperior;
     }
 
-    this.vistaValorInferior = this.aplicarValorVista(valoresNormalizados.valor);
-    this.vistaValorSuperior = this.aplicarValorVista(valoresNormalizados.valorSuperior);
+    this.vistaValorInferior = this.obtenerValorVista(valoresNormalizados.valor);
+    this.vistaValorSuperior = this.obtenerValorVista(valoresNormalizados.valorSuperior);
 
-    this.actualizarDeslizableInferior(this.obtenerPosicionDelValor(this.vistaValorInferior));
-    this.actualizarDeslizableSuperior(this.obtenerPosicionDelValor(this.vistaValorSuperior));
-    this.actualizarBarraSelecionados();
+    this.actualizarDeslizables();
 
     // At the end, we need to communicate the model change to the outputs as well
     // Normalisation changes are also always forced out to ensure that subscribers always end up in correct state
@@ -353,28 +341,23 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     }
 
     if (modelChange.userEventInitiated) {
-      // If this change was initiated by a user event, we can emit outputs in the same tick
       emitOutputs();
-      // this.userChange.emit(this.getSliderChange());
     } else {
-      // But, if the change was initated by something else like a change in input bindings,
-      // we need to wait until next tick to emit the outputs to keep Angular change detection happy
       setTimeout(() => {
         emitOutputs();
       });
     }
   }
 
-  private normalizarValores(input: SliderValores): SliderValores {
+  /** Normalizar valores de los nuevos cambios */
+  private normalizarValores(valores: SliderValores): SliderValores {
     const inputNormalizado: SliderValores = new SliderValores();
-    inputNormalizado.valor = input.valor;
-    inputNormalizado.valorSuperior = input.valorSuperior;
+    inputNormalizado.valor = valores.valor;
+    inputNormalizado.valorSuperior = valores.valorSuperior;
 
     if (this.type === TipoSlider.Fixed) {
-      // When using steps array, only round to nearest step in the array
-      // No other enforcement can be done, as the step array may be out of order, and that is perfectly fine
-      const valueIndex: number = UtilsHelper.obtenerIndiceNodo(inputNormalizado.valor, this.values);
-      inputNormalizado.valor = this.values[valueIndex];
+      const index: number = UtilsHelper.obtenerIndiceNodo(inputNormalizado.valor, this.values);
+      inputNormalizado.valor = this.values[index];
 
       const valorSuperiorIndex: number = UtilsHelper.obtenerIndiceNodo(
         inputNormalizado.valorSuperior,
@@ -403,16 +386,10 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private aplicarConfiguracionFixed(): void {
     this.configuracion.limiteInferior = 0;
     this.configuracion.limiteSuperior = this.values.length - 1;
-    this.configuracion.nodo = 1;
   }
 
   /** Aplicar la configuracion referida al slider normal */
   private aplicarConfiguracionNormal(): void {
-    this.configuracion.nodo = +this.configuracion.nodo;
-    if (this.configuracion.nodo <= 0) {
-      this.configuracion.nodo = 1;
-    }
-
     this.configuracion.limiteSuperior = +this.configuracion.limiteSuperior;
     this.configuracion.limiteInferior = +this.configuracion.limiteInferior;
   }
@@ -429,15 +406,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     ];
   }
 
-  /** Inicializacion de los deslizables y la barra de seleccionados */
-  private inicializarDeslizables(): void {
-    this.actualizarDeslizableInferior(this.obtenerPosicionDelValor(this.vistaValorInferior));
-    this.actualizarDeslizableSuperior(this.obtenerPosicionDelValor(this.vistaValorSuperior));
-    this.actualizarBarraSelecionados();
-  }
-
-  // Calculate dimensions that are dependent on view port size
-  // Run once during initialization and every time view port changes size.
+  /** Calcular dimensiones del slider */
   private calcularDimensiones(): void {
     this.minHandleElement.calcularDimension();
     const handleWidth: number = this.minHandleElement.dimension;
@@ -447,65 +416,45 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
     this.maximaPosicionDeslizable = this.fullBarElement.dimension - handleWidth;
 
-    if (this.initHasRun) {
-      this.inicializarDeslizables();
+    if (this.componenteInicializado) {
+      this.actualizarDeslizables();
     }
   }
 
-  private calculateViewDimensionsAndDetectChanges(): void {
+  /** Procesar cambios en el tamanio de la pantalla */
+  private procesarAjustePantalla(): void {
     this.calcularDimensiones();
-    if (!this.isRefDestroyed()) {
-      this.changeDetectionRef.detectChanges();
-    }
+    this.changeDetectionRef.detectChanges();
   }
 
-  /**
-   * If the slider reference is already destroyed
-   * @returns boolean - true if ref is destroyed
-   */
-  private isRefDestroyed(): boolean {
-    return this.changeDetectionRef['destroyed'];
+  /** Actualizar los deslizables y la barra de seleccionados */
+  private actualizarDeslizables(): void {
+    this.actualizarDeslizableInferior(this.obtenerPosicionDelValor(this.vistaValorInferior));
+    this.actualizarDeslizableSuperior(this.obtenerPosicionDelValor(this.vistaValorSuperior));
+    this.actualizarBarraSelecionados();
   }
 
-  /** Actualizar elementos deslizables (Inferior, Superior y Barra de seleccionados) */
-  private actualizarDeslizables(tipoPunto: TipoPunto, newPos: number): void {
+  /** Actualizar elementos deslizables por tipo de punto */
+  private actualizarDeslizablesPorTipo(tipoPunto: TipoPunto, nuevaPosicion: number): void {
     if (tipoPunto === TipoPunto.Min) {
-      this.actualizarDeslizableInferior(newPos);
+      this.actualizarDeslizableInferior(nuevaPosicion);
     } else if (tipoPunto === TipoPunto.Max) {
-      this.actualizarDeslizableSuperior(newPos);
+      this.actualizarDeslizableSuperior(nuevaPosicion);
     }
 
     this.actualizarBarraSelecionados();
   }
 
-  // Helper function to work out the position for handle labels depending on RTL or not
-  private getHandleLabelPos(labelType: TipoPunto, newPos: number): number {
-    const labelDimension: number =
-      labelType === TipoPunto.Min
-        ? this.minHandleLabelElement.dimension
-        : this.maxHandleLabelElement.dimension;
-    const nearHandlePos: number = newPos - labelDimension / 2 + this.handleHalfDimension;
-    const endOfBarPos: number = this.fullBarElement.dimension - labelDimension;
-
-    if (labelType === TipoPunto.Max) {
-      return Math.min(nearHandlePos, endOfBarPos);
-    } else {
-      return Math.min(Math.max(nearHandlePos, 0), endOfBarPos);
-    }
-  }
-
   /** Actualiza el deslizable inferior y su valor mostrado */
-  private actualizarDeslizableInferior(newPos: number): void {
-    this.minHandleElement.setPosition(newPos);
-    this.minHandleLabelElement.setValue(this.obtenerValorSegunTipo(this.vistaValorInferior));
-    this.minHandleLabelElement.setPosition(this.getHandleLabelPos(TipoPunto.Min, newPos));
+  private actualizarDeslizableInferior(nuevaPosicion: number): void {
+    this.minHandleElement.setPosition(nuevaPosicion);
+    this.minHandleLabelElement.setValue(this.obtenerValorLabel(this.vistaValorInferior));
   }
 
   /** Actualiza el deslizable superior y su valor mostrado */
-  private actualizarDeslizableSuperior(newPos: number): void {
-    this.maxHandleElement.setPosition(newPos);
-    this.maxHandleLabelElement.setValue(this.obtenerValorSegunTipo(this.vistaValorSuperior));
-    this.maxHandleLabelElement.setPosition(this.getHandleLabelPos(TipoPunto.Max, newPos));
+  private actualizarDeslizableSuperior(nuevaPosicion: number): void {
+    this.maxHandleElement.setPosition(nuevaPosicion);
+    this.maxHandleLabelElement.setValue(this.obtenerValorLabel(this.vistaValorSuperior));
   }
 
   /** Actualiza el ancho y la posicion de la barra entre los dos puntos seleccionados. */
@@ -518,7 +467,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   /** Obtiene el valor normal o el valor del nodo si es de tipo fijo el slider.*/
-  private obtenerValorSegunTipo(value: number): string {
+  private obtenerValorLabel(value: number): string {
     if (this.type === TipoSlider.Fixed) {
       value = this.obtenerValorNodo(value);
     }
@@ -528,12 +477,11 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   /** Redondear valor al step mas cercano basado en el valor minimo */
   private redondearNodo(value: number): number {
     let diferenciaNodo: number = UtilsHelper.roundToPrecisionLimit(
-      (value - this.configuracion.limiteInferior) / this.configuracion.nodo,
+      value - this.configuracion.limiteInferior,
       this.configuracion.precisionLimit
     );
 
-    diferenciaNodo = Math.round(diferenciaNodo) * this.configuracion.nodo;
-    console.log({ diferenciaNodo });
+    diferenciaNodo = Math.round(diferenciaNodo);
     return UtilsHelper.roundToPrecisionLimit(
       this.configuracion.limiteInferior + diferenciaNodo,
       this.configuracion.precisionLimit
@@ -828,12 +776,12 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     if (this.obtenerValorVistaActual() !== nuevoValor) {
       if (this.tipoPuntoActivo === TipoPunto.Min) {
         this.vistaValorInferior = nuevoValor;
-        this.aplicarCambiosAlModelo();
+        this.actualizarModelo();
       } else if (this.tipoPuntoActivo === TipoPunto.Max) {
         this.vistaValorSuperior = nuevoValor;
-        this.aplicarCambiosAlModelo();
+        this.actualizarModelo();
       }
-      this.actualizarDeslizables(this.tipoPuntoActivo, this.obtenerPosicionDelValor(nuevoValor));
+      this.actualizarDeslizablesPorTipo(this.tipoPuntoActivo, this.obtenerPosicionDelValor(nuevoValor));
     }
   }
 
