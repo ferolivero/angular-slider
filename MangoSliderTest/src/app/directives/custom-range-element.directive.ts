@@ -67,36 +67,21 @@ export class CustomRangeElementDirective {
     return this.elemRef.nativeElement.getBoundingClientRect();
   }
 
-  activarEvento(eventName: string, callback: (event: any) => void, debounceInterval?: number): void {
-    const listener: EventListener = this.eventListenerHelper.attachEventListener(
+  /** Activa el evento al elemento y lo agrega a la lista de eventos activos  */
+  activarEvento(eventName: string, callback: (event: any) => void): void {
+    const listener: EventListener = this.eventListenerHelper.activarEvento(
       this.elemRef.nativeElement,
       eventName,
-      callback,
-      debounceInterval
+      callback
     );
     this.eventListeners.push(listener);
   }
 
-  desactivarEvento(eventName?: string): void {
-    let listenersToKeep: EventListener[];
-    let listenersToRemove: EventListener[];
-    if (!UtilsHelper.esIndefinidoONulo(eventName)) {
-      listenersToKeep = this.eventListeners.filter(
-        (event: EventListener) => event.nombreEvento !== eventName
-      );
-      listenersToRemove = this.eventListeners.filter(
-        (event: EventListener) => event.nombreEvento === eventName
-      );
-    } else {
-      listenersToKeep = [];
-      listenersToRemove = this.eventListeners;
+  /** Desactiva todos los eventos del elemento */
+  desactivarEventosElemento(): void {
+    for (const listener of this.eventListeners) {
+      this.eventListenerHelper.desactivarEventListener(listener);
     }
-
-    for (const listener of listenersToRemove) {
-      this.eventListenerHelper.detachEventListener(listener);
-    }
-
-    this.eventListeners = listenersToKeep;
   }
 
   private isRefDestroyed(): boolean {

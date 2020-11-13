@@ -1,3 +1,4 @@
+/** Helper con funcionalidades generales */
 export class UtilsHelper {
   static esIndefinidoONulo(value: any): boolean {
     return value === undefined || value === null;
@@ -32,9 +33,5 @@ export class UtilsHelper {
   /* Round numbers to a given number of significant digits */
   static roundToPrecisionLimit(value: number, precisionLimit: number): number {
     return +value.toPrecision(precisionLimit);
-  }
-
-  static clampToRange(valor: number, limiteInferior: number, limiteSuperior: number): number {
-    return Math.min(Math.max(valor, limiteInferior), limiteSuperior);
   }
 }

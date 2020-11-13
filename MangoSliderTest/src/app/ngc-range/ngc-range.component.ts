@@ -139,7 +139,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       this.inputModelChangeSubject.next({
         valor: this.valor,
         valorSuperior: this.valorSuperior,
-        forceChange: false,
+        forzarCambio: false,
         internalChange: false
       });
     }
@@ -147,11 +147,11 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   public ngAfterViewInit(): void {
     if (this.type === TipoSlider.Fixed) this.aplicarConfiguracionFixed();
-    this.subscribeInputModelChangeSubject();
+    this.subscribeInputCambios();
     this.subscribeOutputModelChangeSubject();
 
-    this.vistaValorInferior = this.obtenerValorVista(this.valor);
-    this.vistaValorSuperior = this.obtenerValorVista(this.valorSuperior);
+    this.vistaValorInferior = this.obtenerLabelSegunTipoSlider(this.valor);
+    this.vistaValorSuperior = this.obtenerLabelSegunTipoSlider(this.valorSuperior);
 
     this.calcularDimensiones();
     this.actualizarDeslizables();
@@ -165,11 +165,12 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.procesarReajustePantalla();
   }
 
-  private subscribeInputModelChangeSubject(): void {
+  /** Subscribirse a los cambios en los inputs */
+  private subscribeInputCambios(): void {
     this.inputModelChangeSubscription = this.inputModelChangeSubject
       .pipe(
         distinctUntilChanged(ModelChange.compare),
-        filter((modelChange: InputModelChange) => modelChange.forceChange),
+        filter((modelChange: InputModelChange) => modelChange.forzarCambio),
         throttleTime(100, undefined, { leading: true, trailing: true })
       )
       .subscribe((modelChange: InputModelChange) => this.actualizarModeloDesdeInput(modelChange));
@@ -181,19 +182,19 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
         distinctUntilChanged(ModelChange.compare),
         throttleTime(100, undefined, { leading: true, trailing: true })
       )
-      .subscribe((modelChange: OutputModelChange) => this.publishOutputModelChange(modelChange));
+      .subscribe((modelChange: OutputModelChange) => this.publicarCambios(modelChange));
   }
 
   private unsubscribeOnMove(): void {
     if (!UtilsHelper.esIndefinidoONulo(this.onMoveEventListener)) {
-      this.eventListenerHelper.detachEventListener(this.onMoveEventListener);
+      this.eventListenerHelper.desactivarEventListener(this.onMoveEventListener);
       this.onMoveEventListener = null;
     }
   }
 
   private unsubscribeOnEnd(): void {
     if (!UtilsHelper.esIndefinidoONulo(this.onEndEventListener)) {
-      this.eventListenerHelper.detachEventListener(this.onEndEventListener);
+      this.eventListenerHelper.desactivarEventListener(this.onEndEventListener);
       this.onEndEventListener = null;
     }
   }
@@ -233,7 +234,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   /** Obtener el valor de la vista */
-  private obtenerValorVista(value: number): number {
+  private obtenerLabelSegunTipoSlider(value: number): number {
     if (UtilsHelper.esIndefinidoONulo(value)) {
       return NaN;
     } else if (this.type === TipoSlider.Fixed) {
@@ -265,24 +266,20 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       valor: this.valor,
       valorSuperior: this.valorSuperior,
       userEventInitiated: true,
-      forceChange: false
+      forzarCambio: false
     });
 
-    // At this point all changes are applied and outputs are emitted, so we should be done.
-    // However, input changes are communicated in different stream and we need to be ready to
-    // act on the next input change even if it is exactly the same as last input change.
-    // Therefore, we send a special event to reset the stream.
     this.inputModelChangeSubject.next({
       valor: this.valor,
       valorSuperior: this.valorSuperior,
-      forceChange: false,
+      forzarCambio: false,
       internalChange: true
     });
   }
 
   /** Actualizar cambios al modelo a partir del input */
   private actualizarModeloDesdeInput(modelChange: InputModelChange): void {
-    const valoresNormalizados: SliderValores = this.normalizarValores(modelChange);
+    const valoresNormalizados: InputModelChange = this.normalizarValores(modelChange);
 
     if (this.type === TipoSlider.Normal) {
       if (valoresNormalizados.valor > this.vistaValorSuperior) {
@@ -299,14 +296,14 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     }
 
     // If normalised model change is different, apply the change to the model values
-    const normalisationChange: boolean = !SliderValores.compare(modelChange, valoresNormalizados);
+    const normalisationChange: boolean = !ModelChange.compare(modelChange, valoresNormalizados);
     if (normalisationChange) {
       this.valor = valoresNormalizados.valor;
       this.valorSuperior = valoresNormalizados.valorSuperior;
     }
 
-    this.vistaValorInferior = this.obtenerValorVista(valoresNormalizados.valor);
-    this.vistaValorSuperior = this.obtenerValorVista(valoresNormalizados.valorSuperior);
+    this.vistaValorInferior = this.obtenerLabelSegunTipoSlider(valoresNormalizados.valor);
+    this.vistaValorSuperior = this.obtenerLabelSegunTipoSlider(valoresNormalizados.valorSuperior);
 
     this.actualizarDeslizables();
 
@@ -315,13 +312,13 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.outputModelChangeSubject.next({
       valor: valoresNormalizados.valor,
       valorSuperior: valoresNormalizados.valorSuperior,
-      forceChange: normalisationChange,
+      forzarCambio: normalisationChange,
       userEventInitiated: false
     });
   }
 
-  // Publish model change to output event emitters and registered callbacks
-  private publishOutputModelChange(modelChange: OutputModelChange): void {
+  /** Publica los cambios en el modelo con los callbacks NgModel y outputs */
+  private publicarCambios(modelChange: OutputModelChange): void {
     const emitOutputs: () => void = (): void => {
       this.valueChange.emit(modelChange.valor);
       this.valorSuperiorChange.emit(modelChange.valorSuperior);
@@ -344,8 +341,8 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   /** Normalizar valores de los nuevos cambios */
-  private normalizarValores(valores: SliderValores): SliderValores {
-    const inputNormalizado: SliderValores = new SliderValores();
+  private normalizarValores(valores: InputModelChange): InputModelChange {
+    const inputNormalizado: InputModelChange = new InputModelChange();
     inputNormalizado.valor = valores.valor;
     inputNormalizado.valorSuperior = valores.valorSuperior;
 
@@ -466,15 +463,12 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   /** Obtiene la posicion a partir del valor */
   private obtenerPosicionDelValor(valor: number): number {
-    valor = UtilsHelper.clampToRange(valor, this.limiteInferior, this.limiteSuperior);
     let porcentaje: number = UtilsHelper.linearValueToPosition(
       valor,
       this.limiteInferior,
       this.limiteSuperior
     );
-    if (UtilsHelper.esIndefinidoONulo(porcentaje)) {
-      porcentaje = 0;
-    }
+    if (UtilsHelper.esIndefinidoONulo(porcentaje)) porcentaje = 0;
     return porcentaje * this.maximaPosicionDeslizable;
   }
 
@@ -558,7 +552,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
     for (const element of this.obtenerTodosElementosSliders()) {
       if (!UtilsHelper.esIndefinidoONulo(element)) {
-        element.desactivarEvento();
+        element.desactivarEventosElemento();
       }
     }
   }
@@ -572,7 +566,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       this.inputModelChangeSubject.next({
         valor: this.valor,
         valorSuperior: this.valorSuperior,
-        forceChange: true,
+        forzarCambio: true,
         internalChange: true
       });
     }
@@ -659,7 +653,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
       const onMoveCallback: (e: MouseEvent) => void = (e: MouseEvent): void => this.onMoveEvent(e);
 
-      this.onMoveEventListener = this.eventListenerHelper.attachEventListener(
+      this.onMoveEventListener = this.eventListenerHelper.activarEvento(
         document,
         'mousemove',
         onMoveCallback,
@@ -671,11 +665,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       this.unsubscribeOnEnd();
 
       const onEndCallback: (e: MouseEvent) => void = (e: MouseEvent): void => this.onEndEvent();
-      this.onEndEventListener = this.eventListenerHelper.attachEventListener(
-        document,
-        'mouseup',
-        onEndCallback
-      );
+      this.onEndEventListener = this.eventListenerHelper.activarEvento(document, 'mouseup', onEndCallback);
     }
 
     if (simularMovimiento) {
