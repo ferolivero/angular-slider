@@ -4,19 +4,20 @@ export class UtilsHelper {
     return value === undefined || value === null;
   }
 
-  static linearValueToPosition(val: number, minVal: number, maxVal: number): number {
+  /** Obtiene el porcentaje de la barra desde el minimo hasta la posicion */
+  static obtenerPorcentajePosicion(val: number, minVal: number, maxVal: number): number {
     const range: number = maxVal - minVal;
     return (val - minVal) / range;
   }
 
-  static linearPositionToValue(porcentaje: number, minimoValor: number, maximoValor: number): number {
+  /** Obtiene a partir de un porcentaje la posicion correspondiente */
+  static obtenerPosicionPorcentaje(porcentaje: number, minimoValor: number, maximoValor: number): number {
     return porcentaje * (maximoValor - minimoValor) + minimoValor;
   }
 
   /** Obtiene el indice del nodo con menor diferencia */
   static obtenerIndiceNodo(valor: number, valoresPosibles: number[]): number {
     const arrayDiferencias: number[] = valoresPosibles.map((step: number): number => Math.abs(valor - step));
-    console.log(arrayDiferencias);
     let indiceMenorDiferencia: number = 0;
     for (let index: number = 0; index < valoresPosibles.length; index++) {
       if (
@@ -26,12 +27,11 @@ export class UtilsHelper {
         indiceMenorDiferencia = index;
       }
     }
-    console.log(indiceMenorDiferencia);
     return indiceMenorDiferencia;
   }
 
-  /* Round numbers to a given number of significant digits */
-  static roundToPrecisionLimit(value: number, precisionLimit: number): number {
-    return +value.toPrecision(precisionLimit);
+  /** Redondea con la cantidad de decimales definida en el limite */
+  static redondear(value: number, limite: number): number {
+    return +value.toPrecision(limite);
   }
 }

@@ -26,7 +26,6 @@ export class Exercise2Component implements OnInit {
         })
       )
       .subscribe((data) => {
-        console.log(data);
         this.data = data;
         this.slideValores = Array.of(data.valores[0], data.valores[data.valores.length - 1]);
       });

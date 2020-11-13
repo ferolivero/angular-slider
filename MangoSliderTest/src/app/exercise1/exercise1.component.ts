@@ -28,9 +28,9 @@ export class Exercise1Component implements OnInit {
         })
       )
       .subscribe((data) => {
-        console.log(data);
         this.data = data;
         this.slideValores = Object.values(data);
+        // this.slideValores = [5, 50];
       });
   }
 }

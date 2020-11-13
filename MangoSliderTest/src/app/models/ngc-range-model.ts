@@ -1,11 +1,11 @@
 import { UtilsHelper } from '../helpers';
 
-export class ModelChange {
+export class NgcRangeModel {
   forceChange: boolean;
   valor: number;
   valorSuperior: number;
 
-  public static compare(x?: ModelChange, y?: ModelChange): boolean {
+  public static compare(x?: NgcRangeModel, y?: NgcRangeModel): boolean {
     if (UtilsHelper.esIndefinidoONulo(x) && UtilsHelper.esIndefinidoONulo(y)) {
       return false;
     }
@@ -16,10 +16,10 @@ export class ModelChange {
   }
 }
 
-export class InputModelChange extends ModelChange {
-  internalChange: boolean;
+export class InputNgcRangeModel extends NgcRangeModel {
+  cambioInterno: boolean;
 }
 
-export class OutputModelChange extends ModelChange {
-  userEventInitiated: boolean;
+export class OutputNgcRangeModel extends NgcRangeModel {
+  cambioSolicitadoUsuario: boolean;
 }

@@ -5,17 +5,17 @@ import { NgcRangeElementoDirective } from './ngc-range-elemento.directive';
   selector: '[ngcRangeLabel]'
 })
 export class NgcRangeLabelDirective extends NgcRangeElementoDirective {
-  private _value: string = null;
-  get value(): string {
-    return this._value;
+  private _valor: string = null;
+  get valor(): string {
+    return this._valor;
   }
 
   constructor(elemRef: ElementRef, renderer: Renderer2, changeDetectionRef: ChangeDetectorRef) {
     super(elemRef, renderer, changeDetectionRef);
   }
 
-  setValue(value: string): void {
-    this._value = value;
-    this.elemRef.nativeElement.innerHTML = value;
+  setValor(nuevoValor: string): void {
+    this._valor = nuevoValor;
+    this.elemRef.nativeElement.innerHTML = nuevoValor;
   }
 }
