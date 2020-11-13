@@ -66,17 +66,17 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   inputValorElement: CustomRangeElementDirective;
   @ViewChild('valorSuperiorElement', { read: CustomRangeElementDirective })
   inputValorSuperiorElement: CustomRangeElementDirective;
-  @ViewChild('fullBar', { read: CustomRangeElementDirective })
+  @ViewChild('barraSlider', { read: CustomRangeElementDirective })
   fullBarElement: CustomRangeElementDirective;
-  @ViewChild('selectionBar', { read: CustomRangeElementDirective })
+  @ViewChild('barraSeleccionados', { read: CustomRangeElementDirective })
   selectionBarElement: CustomRangeElementDirective;
-  @ViewChild('minHandle', { read: CustomRangeHandleDirective })
+  @ViewChild('deslizableInferior', { read: CustomRangeHandleDirective })
   minHandleElement: CustomRangeHandleDirective;
-  @ViewChild('maxHandle', { read: CustomRangeHandleDirective })
+  @ViewChild('deslizableSuperior', { read: CustomRangeHandleDirective })
   maxHandleElement: CustomRangeHandleDirective;
-  @ViewChild('minHandleLabel', { read: CustomRangeLabelDirective })
+  @ViewChild('labelInferior', { read: CustomRangeLabelDirective })
   minHandleLabelElement: CustomRangeLabelDirective;
-  @ViewChild('maxHandleLabel', { read: CustomRangeLabelDirective })
+  @ViewChild('labelSuperior', { read: CustomRangeLabelDirective })
   maxHandleLabelElement: CustomRangeLabelDirective;
 
   valor: number = null;

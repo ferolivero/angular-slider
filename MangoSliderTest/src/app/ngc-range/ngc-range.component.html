@@ -1,22 +1,22 @@
 <div class="ngc-range-slider-container">
-    <span customRangeElement #fullBar class="ngc-range-span ngc-range-barra-wrapper ngc-range-full-bar">
+    <span customRangeElement #barraSlider class="ngc-range-span ngc-range-barra-wrapper ngc-range-full-bar">
         <span class="ngc-range-span ngc-range-barra"></span>
     </span>
 
-    <span customRangeElement #selectionBar class="ngc-range-span ngc-range-barra-wrapper">
+    <span customRangeElement #barraSeleccionados class="ngc-range-span ngc-range-barra-wrapper">
         <span class="ngc-range-span ngc-range-barra ngc-range-seleccion"></span>
     </span>
 
-    <span customRangeHandle #minHandle class="ngc-range-span ngc-range-puntero ngc-range-puntero-min"></span>
+    <span customRangeHandle #deslizableInferior class="ngc-range-span ngc-range-puntero ngc-range-puntero-min"></span>
     <!-- // 5 High slider handle -->
-    <span customRangeHandle #maxHandle [style.display]="'inherit'"
+    <span customRangeHandle #deslizableSuperior [style.display]="'inherit'"
         class="ngc-range-span ngc-range-puntero ngc-range-puntero-max"></span>
 
     <!-- // 8 Label above the low slider handle -->
-    <span customRangeLabel #minHandleLabel class="ngc-range-modelo-inferior" (click)="onClickInferiorLabel()"
+    <span customRangeLabel #labelInferior class="ngc-range-modelo-inferior" (click)="onClickInferiorLabel()"
         [hidden]="valorEditable"></span>
     <!-- // 9 Label above the high slider handle -->
-    <span customRangeLabel #maxHandleLabel class="ngc-range-modelo-superior" (click)="onClickSuperiorLabel()"
+    <span customRangeLabel #labelSuperior class="ngc-range-modelo-superior" (click)="onClickSuperiorLabel()"
         [hidden]="valorSuperiorEditable"></span>
 </div>
 <div *ngIf="type === 'normal'">
