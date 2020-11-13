@@ -139,7 +139,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       this.inputModelChangeSubject.next({
         valor: this.valor,
         valorSuperior: this.valorSuperior,
-        forzarCambio: false,
+        forceChange: false,
         internalChange: false
       });
     }
@@ -170,7 +170,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.inputModelChangeSubscription = this.inputModelChangeSubject
       .pipe(
         distinctUntilChanged(ModelChange.compare),
-        filter((modelChange: InputModelChange) => modelChange.forzarCambio),
+        filter((modelChange: InputModelChange) => modelChange.forceChange),
         throttleTime(100, undefined, { leading: true, trailing: true })
       )
       .subscribe((modelChange: InputModelChange) => this.actualizarModeloDesdeInput(modelChange));
@@ -266,13 +266,13 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       valor: this.valor,
       valorSuperior: this.valorSuperior,
       userEventInitiated: true,
-      forzarCambio: false
+      forceChange: false
     });
 
     this.inputModelChangeSubject.next({
       valor: this.valor,
       valorSuperior: this.valorSuperior,
-      forzarCambio: false,
+      forceChange: false,
       internalChange: true
     });
   }
@@ -312,7 +312,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.outputModelChangeSubject.next({
       valor: valoresNormalizados.valor,
       valorSuperior: valoresNormalizados.valorSuperior,
-      forzarCambio: normalisationChange,
+      forceChange: normalisationChange,
       userEventInitiated: false
     });
   }
@@ -566,7 +566,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       this.inputModelChangeSubject.next({
         valor: this.valor,
         valorSuperior: this.valorSuperior,
-        forzarCambio: true,
+        forceChange: true,
         internalChange: true
       });
     }

@@ -6,7 +6,8 @@ export class SliderValores {
 }
 
 export class ModelChange extends SliderValores {
-  forzarCambio: boolean;
+  forceChange: boolean;
+
   public static compare(x?: ModelChange, y?: ModelChange): boolean {
     if (UtilsHelper.esIndefinidoONulo(x) && UtilsHelper.esIndefinidoONulo(y)) {
       return false;
@@ -14,7 +15,7 @@ export class ModelChange extends SliderValores {
     if (UtilsHelper.esIndefinidoONulo(x) !== UtilsHelper.esIndefinidoONulo(y)) {
       return false;
     }
-    return x.valor === y.valor && x.valorSuperior === y.valorSuperior && x.forzarCambio === y.forzarCambio;
+    return x.valor === y.valor && x.valorSuperior === y.valorSuperior && x.forceChange === y.forceChange;
   }
 }
 
