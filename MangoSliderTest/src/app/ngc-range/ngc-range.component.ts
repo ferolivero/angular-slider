@@ -424,13 +424,13 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   /** Actualiza el deslizable inferior y su valor mostrado */
   private actualizarDeslizableInferior(nuevaPosicion: number): void {
-    this.minHandleElement.setPosition(nuevaPosicion);
+    this.minHandleElement.actualizarPosicion(nuevaPosicion);
     this.minHandleLabelElement.setValue(this.obtenerValorLabel(this.vistaValorInferior));
   }
 
   /** Actualiza el deslizable superior y su valor mostrado */
   private actualizarDeslizableSuperior(nuevaPosicion: number): void {
-    this.maxHandleElement.setPosition(nuevaPosicion);
+    this.maxHandleElement.actualizarPosicion(nuevaPosicion);
     this.maxHandleLabelElement.setValue(this.obtenerValorLabel(this.vistaValorSuperior));
   }
 
@@ -440,7 +440,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     let dimension = Math.abs(this.maxHandleElement.position - this.minHandleElement.position);
     let posicion = posicionRangoSeleccionado;
     this.selectionBarElement.aplicarDimension(dimension);
-    this.selectionBarElement.setPosition(posicion);
+    this.selectionBarElement.actualizarPosicion(posicion);
   }
 
   /** Obtiene el valor normal o el valor del nodo si es de tipo fijo el slider.*/

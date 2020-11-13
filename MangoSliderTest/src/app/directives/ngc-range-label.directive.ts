@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Directive, ElementRef, Renderer2 } from '@angular/co
 import { NgcRangeElementoDirective } from './ngc-range-elemento.directive';
 
 @Directive({
-  selector: '[customRangeLabel]'
+  selector: '[ngcRangeLabel]'
 })
 export class NgcRangeLabelDirective extends NgcRangeElementoDirective {
   private _value: string = null;

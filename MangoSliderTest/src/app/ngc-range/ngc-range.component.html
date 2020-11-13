@@ -1,29 +1,28 @@
 <div class="ngc-range-slider-container">
     <!-- Barras -->
-    <span customRangeElement #barraSlider class="ngc-range-span ngc-range-barra-wrapper">
+    <span ngcRangeElement #barraSlider class="ngc-range-span ngc-range-barra-wrapper">
         <span class="ngc-range-span ngc-range-barra"></span>
     </span>
-    <span customRangeElement #barraSeleccionados class="ngc-range-span ngc-range-barra-wrapper">
+    <span ngcRangeElement #barraSeleccionados class="ngc-range-span ngc-range-barra-wrapper">
         <span class="ngc-range-span ngc-range-barra ngc-range-seleccion"></span>
     </span>
 
     <!-- Deslizables -->
-    <span customRangeHandle #deslizableInferior class="ngc-range-span ngc-range-puntero ngc-range-puntero-min"></span>
-    <span customRangeHandle #deslizableSuperior [style.display]="'inherit'"
+    <span ngcRangeDeslizable #deslizableInferior class="ngc-range-span ngc-range-puntero ngc-range-puntero-min"></span>
+    <span ngcRangeDeslizable #deslizableSuperior [style.display]="'inherit'"
         class="ngc-range-span ngc-range-puntero ngc-range-puntero-max"></span>
 
     <!-- Labels -->
-    <span customRangeLabel #labelInferior class="ngc-range-modelo-inferior" (click)="onClickInferiorLabel()"
+    <span ngcRangeLabel #labelInferior class="ngc-range-modelo-inferior" (click)="onClickInferiorLabel()"
         [hidden]="valorEditable"></span>
-    <span customRangeLabel #labelSuperior class="ngc-range-modelo-superior" (click)="onClickSuperiorLabel()"
+    <span ngcRangeLabel #labelSuperior class="ngc-range-modelo-superior" (click)="onClickSuperiorLabel()"
         [hidden]="valorSuperiorEditable"></span>
 </div>
 <div *ngIf="type === 'normal'">
     <!-- Inputs Labels -->
-    <input type="number" customRangeElement id="valorElement" #valorElement [(ngModel)]="valor"
-        [hidden]="!valorEditable"
+    <input type="number" ngcRangeElement id="valorElement" #valorElement [(ngModel)]="valor" [hidden]="!valorEditable"
         class="ngc-range-modelo-inferior ngc-range-modelo-label ngc-range-modelo-inferior-label">
-    <input type="number" customRangeElement id="valorSuperiorElement" #valorSuperiorElement [(ngModel)]="valorSuperior"
+    <input type="number" ngcRangeElement id="valorSuperiorElement" #valorSuperiorElement [(ngModel)]="valorSuperior"
         [hidden]="!valorSuperiorEditable"
         class="ngc-range-modelo-superior ngc-range-modelo-label ngc-range-modelo-superior-label">
 </div>
