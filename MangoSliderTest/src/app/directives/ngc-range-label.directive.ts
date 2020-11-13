@@ -1,10 +1,10 @@
 import { ChangeDetectorRef, Directive, ElementRef, Renderer2 } from '@angular/core';
-import { CustomRangeElementDirective } from './custom-range-element.directive';
+import { NgcRangeElementoDirective } from './ngc-range-elemento.directive';
 
 @Directive({
   selector: '[customRangeLabel]'
 })
-export class CustomRangeLabelDirective extends CustomRangeElementDirective {
+export class NgcRangeLabelDirective extends NgcRangeElementoDirective {
   private _value: string = null;
   get value(): string {
     return this._value;

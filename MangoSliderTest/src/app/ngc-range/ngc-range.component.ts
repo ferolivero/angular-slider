@@ -19,7 +19,7 @@ import {
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, throttleTime } from 'rxjs/operators';
-import { CustomRangeElementDirective } from '../directives/custom-range-element.directive';
+import { NgcRangeElementoDirective } from '../directives/ngc-range-elemento.directive';
 import { EventosHelper, UtilsHelper } from '../helpers';
 import {
   Deslizable,
@@ -30,8 +30,8 @@ import {
   TipoPunto,
   TipoSlider
 } from '../models';
-import { CustomRangeHandleDirective } from './../directives/custom-range-handle.directive';
-import { CustomRangeLabelDirective } from './../directives/custom-range-label.directive';
+import { NgcRangeDeslizableDirective } from '../directives/ngc-range-deslizable.directive';
+import { NgcRangeLabelDirective } from '../directives/ngc-range-label.directive';
 
 const NGX_SLIDER_CONTROL_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -62,22 +62,22 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @Output()
   rangeChange: EventEmitter<number[]> = new EventEmitter();
 
-  @ViewChild('valorElement', { read: CustomRangeElementDirective })
-  inputValorElement: CustomRangeElementDirective;
-  @ViewChild('valorSuperiorElement', { read: CustomRangeElementDirective })
-  inputValorSuperiorElement: CustomRangeElementDirective;
-  @ViewChild('barraSlider', { read: CustomRangeElementDirective })
-  fullBarElement: CustomRangeElementDirective;
-  @ViewChild('barraSeleccionados', { read: CustomRangeElementDirective })
-  selectionBarElement: CustomRangeElementDirective;
-  @ViewChild('deslizableInferior', { read: CustomRangeHandleDirective })
-  minHandleElement: CustomRangeHandleDirective;
-  @ViewChild('deslizableSuperior', { read: CustomRangeHandleDirective })
-  maxHandleElement: CustomRangeHandleDirective;
-  @ViewChild('labelInferior', { read: CustomRangeLabelDirective })
-  minHandleLabelElement: CustomRangeLabelDirective;
-  @ViewChild('labelSuperior', { read: CustomRangeLabelDirective })
-  maxHandleLabelElement: CustomRangeLabelDirective;
+  @ViewChild('valorElement', { read: NgcRangeElementoDirective })
+  inputValorElement: NgcRangeElementoDirective;
+  @ViewChild('valorSuperiorElement', { read: NgcRangeElementoDirective })
+  inputValorSuperiorElement: NgcRangeElementoDirective;
+  @ViewChild('barraSlider', { read: NgcRangeElementoDirective })
+  fullBarElement: NgcRangeElementoDirective;
+  @ViewChild('barraSeleccionados', { read: NgcRangeElementoDirective })
+  selectionBarElement: NgcRangeElementoDirective;
+  @ViewChild('deslizableInferior', { read: NgcRangeDeslizableDirective })
+  minHandleElement: NgcRangeDeslizableDirective;
+  @ViewChild('deslizableSuperior', { read: NgcRangeDeslizableDirective })
+  maxHandleElement: NgcRangeDeslizableDirective;
+  @ViewChild('labelInferior', { read: NgcRangeLabelDirective })
+  minHandleLabelElement: NgcRangeLabelDirective;
+  @ViewChild('labelSuperior', { read: NgcRangeLabelDirective })
+  maxHandleLabelElement: NgcRangeLabelDirective;
 
   valor: number = null;
   valorSuperior: number = null;
@@ -215,7 +215,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   /** Obtener el elemento deslizable segun tipo de punto */
-  private obtenerDeslizableElement(tipoPunto: TipoPunto): CustomRangeHandleDirective {
+  private obtenerDeslizableElement(tipoPunto: TipoPunto): NgcRangeDeslizableDirective {
     if (tipoPunto === TipoPunto.Min) {
       return this.minHandleElement;
     } else if (tipoPunto === TipoPunto.Max) {
@@ -372,7 +372,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   /** Obtener todos los elementos del slider */
-  private obtenerTodosElementosSliders(): CustomRangeElementDirective[] {
+  private obtenerTodosElementosSliders(): NgcRangeElementoDirective[] {
     return [
       this.fullBarElement,
       this.selectionBarElement,
@@ -647,7 +647,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
     this.tipoPuntoActivo = tipoPunto;
 
-    const deslizableElement: CustomRangeHandleDirective = this.obtenerDeslizableElement(tipoPunto);
+    const deslizableElement: NgcRangeDeslizableDirective = this.obtenerDeslizableElement(tipoPunto);
     deslizableElement.active = true;
     if (bindMove) {
       this.unsubscribeOnMove();

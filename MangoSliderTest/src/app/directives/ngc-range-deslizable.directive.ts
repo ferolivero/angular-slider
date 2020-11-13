@@ -1,10 +1,10 @@
 import { ChangeDetectorRef, Directive, ElementRef, HostBinding, Renderer2 } from '@angular/core';
-import { CustomRangeElementDirective } from './custom-range-element.directive';
+import { NgcRangeElementoDirective } from './ngc-range-elemento.directive';
 
 @Directive({
   selector: '[customRangeHandle]'
 })
-export class CustomRangeHandleDirective extends CustomRangeElementDirective {
+export class NgcRangeDeslizableDirective extends NgcRangeElementoDirective {
   active: boolean = false;
 
   @HostBinding('attr.role')

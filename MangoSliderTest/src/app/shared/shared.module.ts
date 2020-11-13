@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { CustomRangeElementDirective } from '../directives/custom-range-element.directive';
-import { CustomRangeHandleDirective } from '../directives/custom-range-handle.directive';
-import { CustomRangeLabelDirective } from '../directives/custom-range-label.directive';
+import { NgcRangeElementoDirective } from '../directives/ngc-range-elemento.directive';
+import { NgcRangeDeslizableDirective } from '../directives/ngc-range-deslizable.directive';
+import { NgcRangeLabelDirective } from '../directives/ngc-range-label.directive';
 import { NgcRangeComponent } from '../ngc-range/ngc-range.component';
 
 @NgModule({
@@ -11,15 +11,15 @@ import { NgcRangeComponent } from '../ngc-range/ngc-range.component';
   exports: [
     CommonModule,
     NgcRangeComponent,
-    CustomRangeElementDirective,
-    CustomRangeHandleDirective,
-    CustomRangeLabelDirective
+    NgcRangeElementoDirective,
+    NgcRangeDeslizableDirective,
+    NgcRangeLabelDirective
   ],
   declarations: [
     NgcRangeComponent,
-    CustomRangeElementDirective,
-    CustomRangeHandleDirective,
-    CustomRangeLabelDirective
+    NgcRangeElementoDirective,
+    NgcRangeDeslizableDirective,
+    NgcRangeLabelDirective
   ]
 })
 export class SharedModule {}

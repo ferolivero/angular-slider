@@ -3,7 +3,7 @@ import { EventosHelper, UtilsHelper } from '../helpers';
 import { EventListener } from '../models';
 
 @Directive({ selector: '[customRangeElement]' })
-export class CustomRangeElementDirective {
+export class NgcRangeElementoDirective {
   constructor(
     protected elemRef: ElementRef,
     protected renderer: Renderer2,
