@@ -22,11 +22,6 @@ export class CustomRangeElementDirective {
     return this._dimension;
   }
 
-  private _scale: number = 1;
-  get scale(): number {
-    return this._scale;
-  }
-
   @HostBinding('style.left')
   left: string = '';
 
@@ -42,10 +37,6 @@ export class CustomRangeElementDirective {
   private eventListenerHelper: EventosHelper;
   private eventListeners: EventListener[] = [];
 
-  setScale(scale: number): void {
-    this._scale = scale;
-  }
-
   // Set element left/top position depending on whether slider is horizontal or vertical
   setPosition(pos: number): void {
     if (this._position !== pos && !this.isRefDestroyed()) {
@@ -59,7 +50,7 @@ export class CustomRangeElementDirective {
   // Calculate element's width/height depending on whether slider is horizontal or vertical
   calcularDimension(): void {
     const val: ClientRect = this.getBoundingClientRect();
-    this._dimension = (val.right - val.left) * this.scale;
+    this._dimension = val.right - val.left;
   }
 
   // Set element width/height depending on whether slider is horizontal or vertical

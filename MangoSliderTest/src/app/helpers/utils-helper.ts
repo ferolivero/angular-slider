@@ -8,24 +8,25 @@ export class UtilsHelper {
     return (val - minVal) / range;
   }
 
-  static linearPositionToValue(percent: number, minVal: number, maxVal: number): number {
-    return percent * (maxVal - minVal) + minVal;
+  static linearPositionToValue(porcentaje: number, minimoValor: number, maximoValor: number): number {
+    return porcentaje * (maximoValor - minimoValor) + minimoValor;
   }
 
-  static obtenerIndiceNodo(modelValue: number, valoresPosibles: number[]): number {
-    const differences: number[] = valoresPosibles.map((step: number): number => Math.abs(modelValue - step));
-
-    let minDifferenceIndex: number = 0;
+  /** Obtiene el indice del nodo con menor diferencia */
+  static obtenerIndiceNodo(valor: number, valoresPosibles: number[]): number {
+    const arrayDiferencias: number[] = valoresPosibles.map((step: number): number => Math.abs(valor - step));
+    console.log(arrayDiferencias);
+    let indiceMenorDiferencia: number = 0;
     for (let index: number = 0; index < valoresPosibles.length; index++) {
       if (
-        differences[index] !== differences[minDifferenceIndex] &&
-        differences[index] < differences[minDifferenceIndex]
+        arrayDiferencias[index] !== arrayDiferencias[indiceMenorDiferencia] &&
+        arrayDiferencias[index] < arrayDiferencias[indiceMenorDiferencia]
       ) {
-        minDifferenceIndex = index;
+        indiceMenorDiferencia = index;
       }
     }
-
-    return minDifferenceIndex;
+    console.log(indiceMenorDiferencia);
+    return indiceMenorDiferencia;
   }
 
   /* Round numbers to a given number of significant digits */
