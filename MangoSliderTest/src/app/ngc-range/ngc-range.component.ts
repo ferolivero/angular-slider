@@ -21,7 +21,6 @@ import { distinctUntilChanged, filter, throttleTime } from 'rxjs/operators';
 import { CustomRangeElementDirective } from '../directives/custom-range-element.directive';
 import { EventosHelper, UtilsHelper } from '../helpers';
 import {
-  Config,
   Deslizable,
   EventListener,
   InputModelChange,
@@ -62,35 +61,6 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @Output()
   rangeChange: EventEmitter<number[]> = new EventEmitter();
 
-  valor: number = null;
-  valorEditable = false;
-  valorSuperior: number = null;
-  valorSuperiorEditable = null;
-
-  private componenteInicializado: boolean = false;
-
-  // Changes in model inputs are passed through this subject
-  // These are all changes coming in from outside the component through input bindings or reactive form inputs
-  private inputModelChangeSubject: Subject<InputModelChange> = new Subject<InputModelChange>();
-  private inputModelChangeSubscription: Subscription = null;
-
-  // Changes to model outputs are passed through this subject
-  // These are all changes that need to be communicated to output emitters and registered callbacks
-  private outputModelChangeSubject: Subject<OutputModelChange> = new Subject<OutputModelChange>();
-  private outputModelChangeSubscription: Subscription = null;
-
-  private vistaValorInferior: number = null;
-  private vistaValorSuperior: number = null;
-
-  private configuracion: Config = new Config();
-
-  private handleHalfDimension: number = 0;
-
-  private deslizable = new Deslizable();
-  private maximaPosicionDeslizable: number = 0;
-
-  tipoPuntoActivo: TipoPunto = null;
-
   @ViewChild('valorElement', { read: CustomRangeElementDirective })
   inputValorElement: CustomRangeElementDirective;
   @ViewChild('valorSuperiorElement', { read: CustomRangeElementDirective })
@@ -108,10 +78,34 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @ViewChild('maxHandleLabel', { read: CustomRangeLabelDirective })
   maxHandleLabelElement: CustomRangeLabelDirective;
 
-  // Event listeners
+  valor: number = null;
+  valorSuperior: number = null;
+
+  /** Atributos para mostrar span o input en el label */
+  valorEditable = false;
+  valorSuperiorEditable = false;
+
+  /** Input / Output subscripcion y subject */
+  private inputModelChangeSubject: Subject<InputModelChange> = new Subject<InputModelChange>();
+  private outputModelChangeSubject: Subject<OutputModelChange> = new Subject<OutputModelChange>();
+  private inputModelChangeSubscription: Subscription = null;
+  private outputModelChangeSubscription: Subscription = null;
+
+  /** Listeners y helpers */
   private eventListenerHelper: EventosHelper = null;
   private onMoveEventListener: EventListener = null;
   private onEndEventListener: EventListener = null;
+
+  private componenteInicializado: boolean = false;
+  private cantidadDecimales: number = 8;
+  private handleHalfDimension: number = 0;
+  private maximaPosicionDeslizable: number = 0;
+  private limiteInferior: number = 0;
+  private limiteSuperior: number = null;
+  private vistaValorInferior: number = null;
+  private vistaValorSuperior: number = null;
+  private deslizable = new Deslizable();
+  private tipoPuntoActivo: TipoPunto = null;
 
   // Callbacks for reactive forms support
   private onTouchedCallback: (value: any) => void = null;
@@ -130,8 +124,8 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       this.valor = this.values[0];
       this.valorSuperior = this.values[this.values.length - 1];
     } else {
-      this.configuracion.limiteInferior = this.min;
-      this.configuracion.limiteSuperior = this.max;
+      this.limiteInferior = this.min;
+      this.limiteSuperior = this.max;
       this.valor = this.min;
       this.valorSuperior = this.max;
     }
@@ -152,9 +146,9 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   public ngAfterViewInit(): void {
-    this.aplicarConfiguracion();
-    this.subscribeInputModelChangeSubject(this.configuracion.inputEventsInterval);
-    this.subscribeOutputModelChangeSubject(this.configuracion.outputEventsInterval);
+    if (this.type === TipoSlider.Fixed) this.aplicarConfiguracionFixed();
+    this.subscribeInputModelChangeSubject();
+    this.subscribeOutputModelChangeSubject();
 
     this.vistaValorInferior = this.obtenerValorVista(this.valor);
     this.vistaValorSuperior = this.obtenerValorVista(this.valorSuperior);
@@ -168,24 +162,24 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   @HostListener('window:resize', ['$event'])
   public onResize(event: any): void {
-    this.procesarAjustePantalla();
+    this.procesarReajustePantalla();
   }
 
-  private subscribeInputModelChangeSubject(interval?: number): void {
+  private subscribeInputModelChangeSubject(): void {
     this.inputModelChangeSubscription = this.inputModelChangeSubject
       .pipe(
         distinctUntilChanged(ModelChange.compare),
         filter((modelChange: InputModelChange) => modelChange.forceChange),
-        throttleTime(interval, undefined, { leading: true, trailing: true })
+        throttleTime(100, undefined, { leading: true, trailing: true })
       )
       .subscribe((modelChange: InputModelChange) => this.actualizarModeloDesdeInput(modelChange));
   }
 
-  private subscribeOutputModelChangeSubject(interval?: number): void {
+  private subscribeOutputModelChangeSubject(): void {
     this.outputModelChangeSubscription = this.outputModelChangeSubject
       .pipe(
         distinctUntilChanged(ModelChange.compare),
-        throttleTime(interval, undefined, { leading: true, trailing: true })
+        throttleTime(100, undefined, { leading: true, trailing: true })
       )
       .subscribe((modelChange: OutputModelChange) => this.publishOutputModelChange(modelChange));
   }
@@ -373,25 +367,10 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     return inputNormalizado;
   }
 
-  /** Aplicar la configuracion al slider segun su tipo */
-  private aplicarConfiguracion(): void {
-    if (this.type === TipoSlider.Fixed) {
-      this.aplicarConfiguracionFixed();
-    } else {
-      this.aplicarConfiguracionNormal();
-    }
-  }
-
   /** Aplicar la configuracion referida al slider con valores fijos */
   private aplicarConfiguracionFixed(): void {
-    this.configuracion.limiteInferior = 0;
-    this.configuracion.limiteSuperior = this.values.length - 1;
-  }
-
-  /** Aplicar la configuracion referida al slider normal */
-  private aplicarConfiguracionNormal(): void {
-    this.configuracion.limiteSuperior = +this.configuracion.limiteSuperior;
-    this.configuracion.limiteInferior = +this.configuracion.limiteInferior;
+    this.limiteInferior = 0;
+    this.limiteSuperior = this.values.length - 1;
   }
 
   /** Obtener todos los elementos del slider */
@@ -422,7 +401,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   /** Procesar cambios en el tamanio de la pantalla */
-  private procesarAjustePantalla(): void {
+  private procesarReajustePantalla(): void {
     this.calcularDimensiones();
     this.changeDetectionRef.detectChanges();
   }
@@ -477,28 +456,21 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   /** Redondear valor al step mas cercano basado en el valor minimo */
   private redondearNodo(value: number): number {
     let diferenciaNodo: number = UtilsHelper.roundToPrecisionLimit(
-      value - this.configuracion.limiteInferior,
-      this.configuracion.precisionLimit
+      value - this.limiteInferior,
+      this.cantidadDecimales
     );
 
     diferenciaNodo = Math.round(diferenciaNodo);
-    return UtilsHelper.roundToPrecisionLimit(
-      this.configuracion.limiteInferior + diferenciaNodo,
-      this.configuracion.precisionLimit
-    );
+    return UtilsHelper.roundToPrecisionLimit(this.limiteInferior + diferenciaNodo, this.cantidadDecimales);
   }
 
   /** Obtiene la posicion a partir del valor */
   private obtenerPosicionDelValor(valor: number): number {
-    valor = UtilsHelper.clampToRange(
-      valor,
-      this.configuracion.limiteInferior,
-      this.configuracion.limiteSuperior
-    );
+    valor = UtilsHelper.clampToRange(valor, this.limiteInferior, this.limiteSuperior);
     let porcentaje: number = UtilsHelper.linearValueToPosition(
       valor,
-      this.configuracion.limiteInferior,
-      this.configuracion.limiteSuperior
+      this.limiteInferior,
+      this.limiteSuperior
     );
     if (UtilsHelper.esIndefinidoONulo(porcentaje)) {
       porcentaje = 0;
@@ -511,8 +483,8 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     let porcentaje: number = posicion / this.maximaPosicionDeslizable;
     const value: number = UtilsHelper.linearPositionToValue(
       porcentaje,
-      this.configuracion.limiteInferior,
-      this.configuracion.limiteSuperior
+      this.limiteInferior,
+      this.limiteSuperior
     );
     return !UtilsHelper.esIndefinidoONulo(value) ? value : 0;
   }
@@ -691,7 +663,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
         document,
         'mousemove',
         onMoveCallback,
-        this.configuracion.mouseEventsInterval
+        50
       );
     }
 
@@ -716,9 +688,9 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     const nuevaPosicion: number = this.obtenerPosicionDelEvento(event);
     let nuevoValor: number;
     if (nuevaPosicion <= 0) {
-      nuevoValor = this.configuracion.limiteInferior;
+      nuevoValor = this.limiteInferior;
     } else if (nuevaPosicion >= this.maximaPosicionDeslizable) {
-      nuevoValor = this.configuracion.limiteSuperior;
+      nuevoValor = this.limiteSuperior;
     } else {
       nuevoValor = this.obtenerValorDeLaPosicion(nuevaPosicion);
       nuevoValor = this.redondearNodo(nuevoValor);

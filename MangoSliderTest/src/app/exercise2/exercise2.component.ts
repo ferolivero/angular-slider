@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { CustomFixedRange } from '../models';
+import { FixedData } from '../models';
 import { ExerciseService } from '../shared/exercise.service';
 
 @Component({
@@ -12,7 +12,7 @@ export class Exercise2Component implements OnInit {
   titulo = 'Ejercicio 2 - Mango Frontend Test';
   private errorMessageSubject = new Subject<string>();
   errorMessage$ = this.errorMessageSubject.asObservable();
-  data: CustomFixedRange;
+  data: FixedData;
   slideValores: number[];
 
   constructor(private exerciseService: ExerciseService) {}
@@ -28,8 +28,7 @@ export class Exercise2Component implements OnInit {
       .subscribe((data) => {
         console.log(data);
         this.data = data;
-        let initialValues = Array.of(data.valores[0], data.valores[data.valores.length - 1]);
-        this.slideValores = initialValues;
+        this.slideValores = Array.of(data.valores[0], data.valores[data.valores.length - 1]);
       });
   }
 }

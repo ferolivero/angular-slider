@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { InMemoryWebApiModule } from 'angular-in-memory-web-api';
-import { AppData } from './app-data';
+import { AppData } from './data/app-data';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
