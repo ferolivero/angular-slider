@@ -30,4 +30,8 @@ export class Exercise2Component implements OnInit {
         this.slideValores = Array.of(data.valores[0], data.valores[data.valores.length - 1]);
       });
   }
+
+  onRangeChange(event) {
+    console.log(event);
+  }
 }

@@ -4,7 +4,7 @@
   </div>
 
   <div class="card-body" *ngIf="data">
-    <ngc-range [min]="data.min" [max]="data.max" [(ngModel)]="slideValores">
+    <ngc-range [min]="data.min" [max]="data.max" [(ngModel)]="slideValores" (rangeChange)="onRangeChange($event)">
     </ngc-range>
   </div>
 </div>

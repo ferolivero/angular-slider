@@ -133,7 +133,6 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       this.limiteInferior = this.min;
       this.limiteSuperior = this.max;
       if (!UtilsHelper.esIndefinidoONulo(this.slideValores)) {
-        console.log(this.slideValores);
         this.valor = this.slideValores[0];
         this.valorSuperior = this.slideValores[1];
       } else {
@@ -291,9 +290,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   /** Actualizar cambios al modelo a partir del input */
   private actualizarModeloDesdeInput(modelChange: InputNgcRangeModel): void {
-    console.log({ modelChange });
     const valoresNormalizados: InputNgcRangeModel = this.normalizarValores(modelChange);
-    console.log({ valoresNormalizados });
 
     if (this.type === TipoSlider.Normal) {
       if (valoresNormalizados.valor > this.vistaValorSuperior) {
@@ -320,6 +317,7 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.vistaValorSuperior = this.obtenerLabelSegunTipoSlider(valoresNormalizados.valorSuperior);
 
     this.actualizarDeslizables();
+    this.rangeChange.emit([valoresNormalizados.valor, valoresNormalizados.valorSuperior]);
 
     // At the end, we need to communicate the model change to the outputs as well
     // Normalisation changes are also always forced out to ensure that subscribers always end up in correct state
@@ -373,10 +371,8 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       return inputNormalizado;
     }
 
-    console.log(inputNormalizado.valor);
     inputNormalizado.valor = this.redondearNodo(inputNormalizado.valor);
     inputNormalizado.valorSuperior = this.redondearNodo(inputNormalizado.valorSuperior);
-    console.log(inputNormalizado.valor);
     return inputNormalizado;
   }
 
@@ -573,7 +569,6 @@ export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   /** ControlValueAccessor inicio*/
   public writeValue(obj: any): void {
     if (!UtilsHelper.esIndefinidoONulo(obj) && obj instanceof Array) {
-      console.log(obj);
       this.valor = obj[0];
       this.valorSuperior = obj[1];
 

@@ -33,4 +33,8 @@ export class Exercise1Component implements OnInit {
         // this.slideValores = [5, 50];
       });
   }
+
+  onRangeChange(event) {
+    console.log(event);
+  }
 }

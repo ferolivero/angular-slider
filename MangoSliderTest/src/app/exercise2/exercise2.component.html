@@ -4,7 +4,8 @@
   </div>
 
   <div class="card-body" *ngIf="data">
-    <ngc-range [values]="data.valores" [type]="'fixed'" [(ngModel)]="slideValores"> </ngc-range>
+    <ngc-range [values]="data.valores" [type]="'fixed'" [(ngModel)]="slideValores"
+      (rangeChange)="onRangeChange($event)"> </ngc-range>
   </div>
 </div>
 
