@@ -1,12 +1,9 @@
 import { UtilsHelper } from '../helpers';
 
-export class SliderValores {
+export class ModelChange {
+  forceChange: boolean;
   valor: number;
   valorSuperior: number;
-}
-
-export class ModelChange extends SliderValores {
-  forceChange: boolean;
 
   public static compare(x?: ModelChange, y?: ModelChange): boolean {
     if (UtilsHelper.esIndefinidoONulo(x) && UtilsHelper.esIndefinidoONulo(y)) {

@@ -13,7 +13,8 @@ import {
   Output,
   Renderer2,
   SimpleChanges,
-  ViewChild
+  ViewChild,
+  ViewEncapsulation
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
@@ -26,7 +27,6 @@ import {
   InputModelChange,
   ModelChange,
   OutputModelChange,
-  SliderValores,
   TipoPunto,
   TipoSlider
 } from '../models';
@@ -44,7 +44,8 @@ const NGX_SLIDER_CONTROL_VALUE_ACCESSOR: any = {
   selector: 'ngc-range',
   templateUrl: './ngc-range.component.html',
   styleUrls: ['./ngc-range.component.scss'],
-  host: { class: 'ngx-slider' },
+  host: { class: 'ngc-range' },
+  encapsulation: ViewEncapsulation.None,
   providers: [NGX_SLIDER_CONTROL_VALUE_ACCESSOR]
 })
 export class NgcRangeComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy, ControlValueAccessor {

@@ -5,7 +5,6 @@ import { CustomRangeElementDirective } from './custom-range-element.directive';
   selector: '[customRangeHandle]'
 })
 export class CustomRangeHandleDirective extends CustomRangeElementDirective {
-  @HostBinding('class.ngx-slider-active')
   active: boolean = false;
 
   @HostBinding('attr.role')
