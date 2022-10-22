@@ -9,7 +9,7 @@ import { ExerciseService } from '../shared/exercise.service';
   styleUrls: ['./exercise2.component.scss']
 })
 export class Exercise2Component implements OnInit {
-  titulo = 'Ejercicio 2 - Mango Frontend Test';
+  titulo = 'Ejercicio 2 - Frontend Challenge';
   private errorMessageSubject = new Subject<string>();
   errorMessage$ = this.errorMessageSubject.asObservable();
   data: FixedData;

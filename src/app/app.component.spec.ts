@@ -16,9 +16,9 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`Deberia tener el titulo 'MangoSliderTest'`, () => {
+  it(`Deberia tener el titulo 'angular-slider'`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.titulo).toEqual('MangoSliderTest');
+    expect(app.titulo).toEqual('angular-slider');
   });
 });
